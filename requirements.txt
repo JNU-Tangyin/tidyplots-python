@@ -1,0 +1,11 @@
+pandas>=1.0.0
+plotnine>=0.10.0
+numpy>=1.18.0
+scipy>=1.4.0
+scikit-misc>=0.1.4
+statsmodels>=0.13.0
+matplotlib>=3.4.0
+pytest>=6.0.0
+black>=22.0.0
+flake8>=4.0.0
+mypy>=0.900
