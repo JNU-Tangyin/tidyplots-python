@@ -5,13 +5,13 @@ here use monkey patching to add a tidyplot() method to pd.Dataframe.
 Then people can use df.tidyplot() in the code.
 '''
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import stats
 from scipy.stats import sem
 from typing import Optional, Union, Literal
 import warnings
 from plotnine import *
-import pandas as pd
 
 class TidyPlot:
     def __init__(self, data: pd.DataFrame, x: str, y: str = None, color: Optional[str] = None):

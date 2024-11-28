@@ -1,6 +1,68 @@
 # tidyplots
 
-A Python library for creating publication-ready plots with a fluent, chainable interface. Built on top of plotnine, it provides a pandas DataFrame extension method for easy and intuitive plot creation.
+<div align="center">
+<table>
+<tr>
+<td><a href="#scatter-plot"><img src="figures/01_scatter_iris.png" width="150"/></a></td>
+<td><a href="#violin-plot"><img src="figures/05_violin_iris.png" width="150"/></a></td>
+<td><a href="#box-plot"><img src="figures/04_box_iris.png" width="150"/></a></td>
+<td><a href="#density-plot"><img src="figures/06_density_tips.png" width="150"/></a></td>
+<td><a href="#step-plot"><img src="figures/07_step_tips.png" width="150"/></a></td>
+<td><a href="#dot-plot"><img src="figures/08_dot_iris.png" width="150"/></a></td>
+</tr>
+<tr>
+<td><a href="#bar-plot"><img src="figures/03_bar_tips.png" width="150"/></a></td>
+<td><a href="#line-plot"><img src="figures/02_line_flights.png" width="150"/></a></td>
+<td><a href="#hex-plot"><img src="figures/21_hex_tips.png" width="150"/></a></td>
+<td><a href="#mean-bar"><img src="figures/09_mean_bar_tips.png" width="150"/></a></td>
+<td><a href="#sem-errorbar"><img src="figures/10_sem_errorbar_tips.png" width="150"/></a></td>
+<td><a href="#sd-errorbar"><img src="figures/11_sd_errorbar_tips.png" width="150"/></a></td>
+</tr>
+<tr>
+<td><a href="#beeswarm-plot"><img src="figures/24_beeswarm_tips.png" width="150"/></a></td>
+<td><a href="#smooth-plot"><img src="figures/16_smooth_tips.png" width="150"/></a></td>
+<td><a href="#density-2d"><img src="figures/19_density_2d_iris.png" width="150"/></a></td>
+<td><a href="#regression"><img src="figures/17_regression_tips.png" width="150"/></a></td>
+<td><a href="#ci-errorbar"><img src="figures/12_ci_errorbar_tips.png" width="150"/></a></td>
+<td><a href="#custom-errorbar"><img src="figures/13_custom_errorbar_tips.png" width="150"/></a></td>
+</tr>
+<tr>
+<td><a href="#correlation"><img src="figures/15_correlation_tips.png" width="150"/></a></td>
+<td><a href="#ribbon-plot"><img src="figures/29_ribbon_tips.png" width="150"/></a></td>
+<td><a href="#density-2d-filled"><img src="figures/20_density_2d_filled_iris.png" width="150"/></a></td>
+<td><a href="#rug-plot"><img src="figures/22_rug_tips.png" width="150"/></a></td>
+<td><a href="#pvalue"><img src="figures/14_pvalue_iris.png" width="150"/></a></td>
+<td><a href="#count-plot"><img src="figures/23_count_titanic.png" width="150"/></a></td>
+</tr>
+<tr>
+<td><a href="#jitter-plot"><img src="figures/25_jitter_tips.png" width="150"/></a></td>
+<td><a href="#hline"><img src="figures/26_hline_tips.png" width="150"/></a></td>
+<td><a href="#vline"><img src="figures/27_vline_tips.png" width="150"/></a></td>
+<td><a href="#text-annotation"><img src="figures/28_text_tips.png" width="150"/></a></td>
+<td><a href="#no-legend"><img src="figures/31_no_legend_iris.png" width="150"/></a></td>
+<td><a href="#rotated-labels"><img src="figures/32_rotated_labels_diamonds.png" width="150"/></a></td>
+</tr>
+<tr>
+<td><a href="#boxplot-jitter"><img src="figures/boxplot_jitter.png" width="150"/></a></td>
+<td><a href="#violin-quartiles"><img src="figures/violin_quartiles.png" width="150"/></a></td>
+<td><a href="#correlation-advanced"><img src="figures/correlation.png" width="150"/></a></td>
+<td><a href="#time-series"><img src="figures/time_series.png" width="150"/></a></td>
+<td><a href="#density-groups"><img src="figures/density_groups.png" width="150"/></a></td>
+<td><a href="#scatter-groups"><img src="figures/scatter_groups.png" width="150"/></a></td>
+</tr>
+</table>
+</div>
+
+A Python library for creating publication-ready plots with a fluent, chainable interface, inspired by [tidyplots R version](https://github.com/jbengler/tidyplots).
+
+Built on top of plotnine, it provides a pandas DataFrame extension method for easy and intuitive plot creation.
+
+todo list
+
+* [X] complete the whole set of plotting that maps to R version
+* [ ] more themes, such as ggprism
+* [ ] more palettes, including palettes from famous journals, for instance, ggsci
+* [ ] more plotting variations from ggpubr
 
 ## Features
 
@@ -15,7 +77,13 @@ A Python library for creating publication-ready plots with a fluent, chainable i
 ## Installation
 
 ```bash
-pip install tidyplots
+pip install tidyplots-python
+```
+
+for development version:
+
+```
+pip install git+https://github.com/JNU-Tangyin/tidyplots-python.git
 ```
 
 ## Quick Start
@@ -23,14 +91,11 @@ pip install tidyplots
 ```python
 import pandas as pd
 import numpy as np
+import seaborn as sns
 from tidyplots import TidyPlot
 
 # Create sample data
-data = pd.DataFrame({
-    'x': np.random.normal(0, 1, 100),
-    'y': np.random.normal(0, 1, 100),
-    'group': np.random.choice(['A', 'B', 'C'], 100)
-})
+iris = sns.load_dataset("iris")
 
 # Create a scatter plot with groups
 (data.tidyplot(x='x', y='y', color='group')
@@ -42,11 +107,14 @@ data = pd.DataFrame({
  .show())
 ```
 
+<img src="figures/01_scatter_iris.png" width="500"/>
+
 ## API Reference
 
 ### Core Plot Creation
 
 - `df.tidyplot(x, y=None, color=None)`: Initialize a plot with aesthetics
+
   ```python
   df.tidyplot(x='column1', y='column2', color='group')
   ```
@@ -82,129 +150,410 @@ data = pd.DataFrame({
 
 - Default theme: Prism-style with NPG colors
 - Customizable base theme:
+
   ```python
   .adjust_theme(base_size=11, base_family="Arial")
   ```
 
-## Examples
+## Plot Examples
 
-### Time Series with Trend
+### Basic Plots
+
+<h3 id="scatter-plot">Scatter Plot</h3>
 
 ```python
-(df.tidyplot(x='time', y='value')
- .add_line()
- .add_scatter()
- .adjust_labels(title='Time Series Plot', 
-               x='Date', 
-               y='Value')
- .show())
+(iris.tidyplot(x='sepal_length', y='sepal_width', color='species')
+ .add_scatter(size=3, alpha=0.7)
+ .adjust_labels(title='Scatter: Iris Dimensions',
+               x='Sepal Length', y='Sepal Width')
+ .adjust_colors('npg')
+ .adjust_legend_position('right'))
 ```
 
-![Time Series Plot](figures/time_series.png)
-
-### Scatter Plot with Groups
+<h3 id="violin-plot">Violin Plot</h3>
 
 ```python
-(df.tidyplot(x='x', y='y', color='group')
- .add_scatter()
- .adjust_labels(title='Grouped Scatter Plot', 
-               x='X', 
-               y='Y')
- .show())
+(iris.tidyplot(x='species', y='petal_length')
+ .add_violin(alpha=0.4, draw_quantiles=[0.25, 0.5, 0.75])
+ .adjust_labels(title='Violin: Petal Length by Species',
+               x='Species', y='Petal Length'))
 ```
 
-![Scatter Plot](figures/scatter_groups.png)
-
-### Box Plot with Data Points and P-values
+<h3 id="box-plot">Box Plot</h3>
 
 ```python
-(df.tidyplot(x='group', y='y')
- .add_boxplot()
- .add_data_points(alpha=0.3)
- .add_pvalue(0.001, 0, 2, 2.5)
- .adjust_labels(title='Box Plot with P-value', 
-               x='Group', 
-               y='Value')
- .show())
+(iris.tidyplot(x='species', y='petal_width')
+ .add_boxplot(alpha=0.4, outlier_alpha=0.5)
+ .adjust_labels(title='Box: Petal Width by Species',
+               x='Species', y='Petal Width'))
 ```
 
-![Box Plot](figures/boxplot_jitter.png)
-
-### Violin Plot with Quartiles
+<h3 id="density-plot">Density Plot</h3>
 
 ```python
-(df.tidyplot(x='group', y='y')
- .add_violin(draw_quantiles=[0.25, 0.5, 0.75])
- .adjust_labels(title='Violin Plot with Quartiles', 
-               x='Group', 
-               y='Value')
- .show())
+(tips.tidyplot(x='total_bill')
+ .add_density(alpha=0.4)
+ .adjust_labels(title='Density: Total Bill Distribution',
+               x='Total Bill', y='Density'))
 ```
 
-![Violin Plot](figures/violin_quartiles.png)
-
-### Density Plot with Groups
+<h3 id="step-plot">Step Plot</h3>
 
 ```python
-(df.tidyplot(x='y', color='group')
+tips_sorted = tips.sort_values('tip')
+tips_sorted['cumsum'] = tips_sorted['tip'].cumsum()
+(tips_sorted.tidyplot(x=range(len(tips)), y='cumsum')
+ .add_step(direction='hv')
+ .adjust_labels(title='Step: Cumulative Tips',
+               x='Count', y='Cumulative Tips'))
+```
+
+<h3 id="dot-plot">Dot Plot</h3>
+
+```python
+(iris.tidyplot(x='petal_length', color='species')
+ .add_dotplot(binwidth=0.2, stackdir='up', binaxis='x')
+ .adjust_labels(title='Dot: Petal Length Distribution',
+               x='Petal Length', y='Count'))
+```
+
+<h3 id="bar-plot">Bar Plot</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_bar(stat='identity', width=0.7, alpha=0.7)
+ .adjust_labels(title='Bar: Tips by Day',
+               x='Day', y='Total Tips'))
+```
+
+<h3 id="line-plot">Line Plot</h3>
+
+```python
+monthly_passengers = flights.groupby('year')['passengers'].mean().reset_index()
+(monthly_passengers.tidyplot(x='year', y='passengers')
+ .add_line(size=1, alpha=1.0)
+ .adjust_labels(title='Line: Average Passengers by Year',
+               x='Year', y='Passengers'))
+```
+
+### Statistical Plots
+
+<h3 id="hex-plot">Hex Plot</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_hex(bins=20)
+ .adjust_labels(title='Hex: Tips vs Total Bill',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="mean-bar">Mean Bar</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_mean_bar(alpha=0.4, width=0.7)
+ .adjust_labels(title='Mean Bar: Average Tips by Day',
+               x='Day', y='Average Tip'))
+```
+
+<h3 id="sem-errorbar">SEM Error Bar</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_mean_bar(alpha=0.4, width=0.7)
+ .add_sem_errorbar(width=0.2)
+ .adjust_labels(title='SEM: Tips by Day',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="sd-errorbar">SD Error Bar</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_mean_bar(alpha=0.4, width=0.7)
+ .add_sd_errorbar(width=0.2)
+ .adjust_labels(title='SD: Tips by Day',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="beeswarm-plot">Beeswarm Plot</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_beeswarm(size=3, alpha=0.7)
+ .adjust_labels(title='Beeswarm: Tips by Day',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="smooth-plot">Smooth Plot</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_smooth(method='lm', se=True, alpha=0.2)
+ .adjust_labels(title='Smooth: Tips vs Total Bill',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="density-2d">2D Density Plot</h3>
+
+```python
+(iris.tidyplot(x='sepal_length', y='sepal_width')
+ .add_density_2d(alpha=0.7)
+ .adjust_labels(title='2D Density: Sepal Dimensions',
+               x='Sepal Length', y='Sepal Width'))
+```
+
+<h3 id="regression">Regression Plot</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_regression_line(ci=True, alpha=0.2)
+ .adjust_labels(title='Regression: Tips vs Total Bill',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="ci-errorbar">CI Error Bar</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_mean_bar(alpha=0.4, width=0.7)
+ .add_ci_errorbar(width=0.2, ci=0.95)
+ .adjust_labels(title='CI: Tips by Day',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="custom-errorbar">Custom Error Bar</h3>
+
+```python
+tips_summary = tips.groupby('day').agg({
+    'tip': ['mean', lambda x: x.mean() - x.std(), lambda x: x.mean() + x.std()]
+}).reset_index()
+tips_summary.columns = ['day', 'mean', 'lower', 'upper']
+(tips_summary.tidyplot(x='day', y='mean')
+ .add_mean_bar(alpha=0.4, width=0.7)
+ .add_errorbar(ymin='lower', ymax='upper', width=0.2)
+ .adjust_labels(title='Custom Error: Tips by Day',
+               x='Day', y='Tip Amount'))
+```
+
+### Advanced Plots
+
+<h3 id="correlation">Correlation Plot</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_correlation_text(method='pearson', format='.3f')
+ .adjust_labels(title='Correlation: Tips vs Total Bill',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="ribbon-plot">Ribbon Plot</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_ribbon(ymin='tip_min', ymax='tip_max', alpha=0.3)
+ .adjust_labels(title='Ribbon: Tips Range',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="density-2d-filled">2D Density Filled</h3>
+
+```python
+(iris.tidyplot(x='sepal_length', y='sepal_width')
+ .add_density_2d_filled(alpha=0.7)
+ .adjust_labels(title='2D Density Filled: Sepal Dimensions',
+               x='Sepal Length', y='Sepal Width'))
+```
+
+<h3 id="rug-plot">Rug Plot</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_rug(sides='b', alpha=0.5, length=0.03)
+ .adjust_labels(title='Rug: Tips vs Total Bill',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="pvalue">P-value Plot</h3>
+
+```python
+(iris.tidyplot(x='species', y='petal_length')
+ .add_boxplot(alpha=0.4)
+ .add_test_pvalue(test='anova', paired=False)
+ .adjust_labels(title='P-value: Petal Length by Species',
+               x='Species', y='Petal Length'))
+```
+
+<h3 id="count-plot">Count Plot</h3>
+
+```python
+(titanic.tidyplot(x='class')
+ .add_count()
+ .adjust_labels(title='Count: Passenger Class',
+               x='Class', y='Count'))
+```
+
+### Customization Examples
+
+<h3 id="jitter-plot">Jitter Plot</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_jitter(width=0.2, size=3, alpha=0.7)
+ .adjust_labels(title='Jitter: Tips by Day',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="hline">Horizontal Line</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_hline(yintercept=tips['tip'].mean(), color='red', alpha=0.7)
+ .adjust_labels(title='HLine: Mean Tip',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="vline">Vertical Line</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_vline(xintercept=tips['total_bill'].mean(), color='red', alpha=0.7)
+ .adjust_labels(title='VLine: Mean Total Bill',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="text-annotation">Text Annotation</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_text(x=20, y=8, label='Custom Text', color='red')
+ .adjust_labels(title='Text: Tips vs Total Bill',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="no-legend">No Legend</h3>
+
+```python
+(iris.tidyplot(x='sepal_length', y='sepal_width', color='species')
+ .add_scatter(size=3, alpha=0.7)
+ .adjust_labels(title='No Legend Example')
+ .adjust_legend_show(False))
+```
+
+<h3 id="rotated-labels">Rotated Labels</h3>
+
+```python
+diamonds_cut = diamonds.groupby('cut')['price'].mean().reset_index()
+(diamonds_cut.tidyplot(x='cut', y='price')
+ .add_bar(alpha=0.7)
+ .adjust_labels(title='Bar Plot with Rotated Labels',
+               x='Diamond Cut Category', y='Average Price')
+ .adjust_axis_text_angle(45))
+```
+
+### Complex Examples
+
+<h3 id="boxplot-jitter">Boxplot with Jitter</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_boxplot(alpha=0.3)
+ .add_jitter(width=0.2, size=3, alpha=0.5)
+ .adjust_labels(title='Box Plot with Jittered Points',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="violin-quartiles">Violin with Quartiles</h3>
+
+```python
+(tips.tidyplot(x='day', y='tip')
+ .add_violin(alpha=0.4, draw_quantiles=[0.25, 0.5, 0.75])
+ .adjust_labels(title='Violin Plot with Quartiles',
+               x='Day', y='Tip Amount'))
+```
+
+<h3 id="correlation-advanced">Advanced Correlation</h3>
+
+```python
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter(size=3, alpha=0.7)
+ .add_smooth(method='lm', se=True)
+ .add_correlation_text(method='pearson')
+ .adjust_labels(title='Correlation with Regression',
+               x='Total Bill', y='Tip'))
+```
+
+<h3 id="time-series">Time Series</h3>
+
+```python
+(flights.tidyplot(x='year', y='passengers')
+ .add_line(size=1)
+ .add_smooth(method='loess', span=0.2)
+ .adjust_labels(title='Passenger Trends Over Time',
+               x='Year', y='Number of Passengers'))
+```
+
+<h3 id="density-groups">Density Groups</h3>
+
+```python
+(tips.tidyplot(x='total_bill', color='time')
  .add_density(alpha=0.5)
- .adjust_labels(title='Density Plot by Group', 
-               x='Value', 
-               y='Density')
- .show())
+ .adjust_labels(title='Bill Distribution by Time',
+               x='Total Bill', y='Density'))
 ```
 
-![Density Plot](figures/density_groups.png)
-
-### Bar Plot with Error Bars
+<h3 id="scatter-groups">Scatter Groups</h3>
 
 ```python
-means = df.groupby('group')['y'].mean().reset_index()
-sems = df.groupby('group')['y'].sem().reset_index()
-(means.tidyplot(x='group', y='y')
- .add_bar()
- .add_errorbar(ymin=means['y']-sems['y'], 
-               ymax=means['y']+sems['y'])
- .adjust_labels(title='Bar Plot with Error Bars', 
-               x='Group', 
-               y='Value')
- .show())
+(iris.tidyplot(x='sepal_length', y='sepal_width', color='species')
+ .add_scatter(size=3, alpha=0.7)
+ .add_smooth(method='lm', se=True)
+ .adjust_labels(title='Sepal Dimensions by Species',
+               x='Sepal Length', y='Sepal Width'))
 ```
-
-![Bar Plot](figures/barplot_error.png)
-
-### Correlation Plot
-
-```python
-(df.tidyplot(x='x', y='y')
- .add_scatter()
- .add_smooth(method='lm')
- .add_correlation_text()
- .adjust_labels(title='Correlation Plot', 
-               x='X', 
-               y='Y')
- .show())
-```
-
-![Correlation Plot](figures/correlation.png)
 
 ## Color Palettes
 
 Default color palettes from scientific journals:
 
 ```python
-# Change color palette
-df.tidyplot(...).adjust_colors('npg')  # Nature Publishing Group (default)
-df.tidyplot(...).adjust_colors('aaas')  # Science/AAAS
-df.tidyplot(...).adjust_colors('nejm')  # New England Journal of Medicine
-df.tidyplot(...).adjust_colors('lancet')  # The Lancet
-df.tidyplot(...).adjust_colors('jama')  # Journal of American Medical Association
+# Change color palette to Nature Publishing Group (default)
+df.tidyplot(...).adjust_colors('npg')  # 
 ```
 
-Other available palettes:
+Available palettes (thanks to ggsci):
+
+- 'npg': Nature Publishing Group colors (default)
+- 'aaas': Science/AAAS colors
+- 'nejm': New England Journal of Medicine colors
+- 'lancet': The Lancet colors
+- 'jama': Journal of American Medical Association colors
 - 'd3': D3.js colors
 - 'material': Material Design colors
 - 'igv': Integrative Genomics Viewer colors
+
+and it supports the all color schemes in matplotlib by name:
+
+```python
+cmaps = [
+('Perceptually Uniform Sequential', ['viridis', 'plasma', 'inferno', 'magma']),
+('Sequential', [ 'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds', 'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu', 'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']),
+('Sequential (2)', ['binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink', 'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia','hot', 'afmhot', 'gist_heat', 'copper']),
+ ('Diverging', ['PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu', 'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']), ('Qualitative', [ 'Pastel1', 'Pastel2', 'Paired', 'Accent', 'Dark2', 'Set1', 'Set2', 'Set3', 'tab10', 'tab20', 'tab20b', 'tab20c']),
+('Miscellaneous', [ 'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern', 'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg', 'hsv', 'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar'])
+]
+# Change color palette using Matplotlib colormaps
+df.tidyplot(...).adjust_colors('Set1')
+```
+
+more to come ...
 
 ## Dependencies
 
@@ -212,9 +561,13 @@ Other available palettes:
 - numpy >= 1.18.0
 - plotnine >= 0.8.0
 
-## Contributing
+## Notices
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+This project is a Python transplant from [tidyplots R version](https://github.com/jbengler/tidyplots), and it is supported by [Windsurf](https://codeium.com/windsurf).
+
+Althought I believe the philosophy we present in this work is convenient, pythonic, and easy to use, it is however rudimentary starting point, therefore it may contain bugs and missing features. Please forgive me if you find any.
+
+And most importantly, contributions are more than welcome! Please feel free to submit a Pull Request.
 
 ## License
 

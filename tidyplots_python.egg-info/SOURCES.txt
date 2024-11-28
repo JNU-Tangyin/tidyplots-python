@@ -1,0 +1,12 @@
+LICENSE
+README.md
+setup.py
+tests/test_tidyplots.py
+tidyplots/__init__.py
+tidyplots/palettes.py
+tidyplots/tidyplots.py
+tidyplots_python.egg-info/PKG-INFO
+tidyplots_python.egg-info/SOURCES.txt
+tidyplots_python.egg-info/dependency_links.txt
+tidyplots_python.egg-info/requires.txt
+tidyplots_python.egg-info/top_level.txt
