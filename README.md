@@ -1,4 +1,4 @@
-# tidyplots
+# Tidyplots for Python
 
 <div align="center">
 <table>
@@ -606,14 +606,14 @@ The list is provided as below:
 * `geom_label()` - Labels with backgrounds not available
 * `geom_curve()` - Curved line segments not available
 
-1. **Modified Functions** :
+2. **Modified Functions** :
 
 * `add_data_labels_repel()` - Modified to use regular `geom_text()` instead of `geom_text_repel()`
 * `add_pie_chart()` - Implemented using bar plots and coordinate transformations since native pie charts aren't supported
 * `add_donut_chart()` - Similar to pie charts, implemented through workarounds
 * `add_density_2d_filled()` - Had to use regular density_2d with modified aesthetics
 
-1. **Limited Functionality** :
+3. **Limited Functionality** :
 
 * `facet_grid()` - More limited options compared to ggplot2
 * `scale_*_gradient2()` - Diverging color scales have limited options
@@ -621,7 +621,7 @@ The list is provided as below:
 * `coord_fixed()` - Fixed coordinate ratio support is limited
 * `position_dodge2()` - Advanced dodging features not available
 
-1. **Performance Differences** :
+4. **Performance Differences** :
 
 * Large dataset handling is generally slower in plotnine
 * Some smoothing methods in `stat_smooth()` have fewer options

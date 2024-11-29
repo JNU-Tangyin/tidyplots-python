@@ -1,5 +1,5 @@
 import pandas as pd
-from tidyplot import TidyPlot
+from tidyplots import TidyPlot
 
 # Monkey patching
 if not hasattr(pd.DataFrame, 'tidyplot'):

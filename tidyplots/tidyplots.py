@@ -36,7 +36,14 @@ class TidyPlot:
         self.plot = None
         self.prism = themes.TidyPrism()
     
-    def __call__(self, x: str, y: str = None, color: Optional[str] = None, fill: Optional[str] = None):
+    def __call__(self, x: str, y: str = None, 
+                color: Optional[str] = None, 
+                fill: Optional[str] = None,
+                shape: Optional[str] = None,
+                size: Optional[str] = None,
+                linetype: Optional[str] = None,
+                alpha: Optional[float] = None,
+                alpha_fill: Optional[float] = None):
         """Create a new plot with the given aesthetics.
         
         Parameters:
@@ -49,14 +56,27 @@ class TidyPlot:
             Column name for color aesthetic
         fill : str, optional
             Column name for fill aesthetic
+        shape : str, optional
+            Column name for shape aesthetic
+        size : str, optional
+            Column name for size aesthetic
+        linetype : str, optional
+            Column name for linetype aesthetic
+        alpha : float, optional
+            Alpha value for points
+        alpha_fill : float, optional
+            Alpha value for fill
+
         """
-        mapping = aes(x=x)
-        if y is not None:
-            mapping = aes(x=x, y=y)
-        if color is not None:
-            mapping = aes(x=x, y=y, color=color) if y is not None else aes(x=x, color=color)
-        if fill is not None:
-            mapping = aes(x=x, y=y, fill=fill) if y is not None else aes(x=x, fill=fill)
+        avaliable_locals = {k:v for k,v in locals().items() if v is not None}
+        mapping = aes(avaliable_locals) # 本句替代下面整个block
+        # mapping = aes(x=x)
+        # if y is not None:
+        #     mapping = aes(x=x, y=y)
+        # if color is not None:
+        #     mapping = aes(x=x, y=y, color=color) if y is not None else aes(x=x, color=color)
+        # if fill is not None:
+        #     mapping = aes(x=x, y=y, fill=fill) if y is not None else aes(x=x, fill=fill)
             
         self.plot = (ggplot(self._obj, mapping) +
                     themes.TidyPrism.theme_prism())  # Use Prism theme by default
@@ -619,3 +639,44 @@ class TidyPlot:
             else:
                 return self
         return self.reorder_color_labels(order)
+    
+    def add_pvalue(p: float, x1: float, x2: float, y: float, height: float = 0.02,
+                  format: str = "stars") -> List[Any]:
+        """Add p-value annotation with bracket.
+        
+        Parameters:
+        -----------
+        p : float
+            P-value to display
+        x1, x2 : float
+            x-coordinates for bracket ends
+        y : float
+            y-coordinate for bracket
+        height : float
+            Height of the bracket
+        format : str
+            Format for p-value display ('stars' or 'numeric')
+            
+        Returns:
+        --------
+        list
+            List of annotation layers
+        """
+        if format == "stars":
+            if p < 0.001:
+                text = "***"
+            elif p < 0.01:
+                text = "**"
+            elif p < 0.05:
+                text = "*"
+            else:
+                text = "ns"
+        else:
+            text = f"p = {p:.3f}"
+            
+        return [
+            geom_segment(aes(x=x1, xend=x1, y=y, yend=y+height)),
+            geom_segment(aes(x=x2, xend=x2, y=y, yend=y+height)),
+            geom_segment(aes(x=x1, xend=x2, y=y+height, yend=y+height)),
+            annotate("text", x=(x1+x2)/2, y=y+height, label=text, size=8)
+        ]

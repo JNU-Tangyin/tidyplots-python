@@ -1,9 +1,12 @@
 LICENSE
 README.md
 setup.py
+tests/test_palettes.py
+tests/test_themes.py
 tests/test_tidyplots.py
 tidyplots/__init__.py
 tidyplots/palettes.py
+tidyplots/themes.py
 tidyplots/tidyplots.py
 tidyplots_python.egg-info/PKG-INFO
 tidyplots_python.egg-info/SOURCES.txt
