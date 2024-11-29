@@ -153,379 +153,150 @@ iris = sns.load_dataset("iris")
   .adjust_theme(base_size=11, base_family="Arial")
   ```
 
-## Plot Examples
+## Examples
 
+### Scatter Plot
 ```python
-# Load all available seaborn datasets
-iris = sns.load_dataset("iris")
-tips = sns.load_dataset("tips")
-titanic = sns.load_dataset("titanic")
-planets = sns.load_dataset("planets")
-diamonds = sns.load_dataset("diamonds")
-flights = sns.load_dataset("flights")
-```
+import seaborn as sns
+from tidyplots import TidyPlot
 
-### Basic Plots
+# Load iris dataset
+iris = sns.load_dataset('iris')
 
-<h3 id="scatter-plot">Scatter Plot</h3>
-
-```python
+# Create a scatter plot
 (iris.tidyplot(x='sepal_length', y='sepal_width', color='species')
- .add_scatter(size=3, alpha=0.7)
- .adjust_labels(title='Scatter: Iris Dimensions',
-               x='Sepal Length', y='Sepal Width')
- .adjust_colors('npg')
- .adjust_legend_position('right'))
+     .add_scatter(size=5, alpha=0.7)
+     .adjust_labels(title='Iris Sepal Dimensions', 
+                    x='Sepal Length', y='Sepal Width'))
 ```
+![Scatter Plot](figures/1_scatter.png)
 
-<h3 id="violin-plot">Violin Plot</h3>
-
+### Box Plot
 ```python
+# Create a box plot
+(iris.tidyplot(x='species', y='sepal_length')
+     .add_boxplot(alpha=0.5)
+     .add_jitter(width=0.2, size=3, alpha=0.7)
+     .adjust_labels(title='Sepal Length by Species', 
+                    x='Species', y='Sepal Length'))
+```
+![Box Plot](figures/1.4_box.png)
+
+### Violin Plot
+```python
+# Create a violin plot
 (iris.tidyplot(x='species', y='petal_length')
- .add_violin(alpha=0.4, draw_quantiles=[0.25, 0.5, 0.75])
- .adjust_labels(title='Violin: Petal Length by Species',
-               x='Species', y='Petal Length'))
+     .add_violin(draw_quantiles=[0.25, 0.5, 0.75], alpha=0.6)
+     .adjust_labels(title='Petal Length Distribution', 
+                    x='Species', y='Petal Length'))
 ```
+![Violin Plot](figures/1.5_violin.png)
 
-<h3 id="box-plot">Box Plot</h3>
-
+### Density Plot
 ```python
-(iris.tidyplot(x='species', y='petal_width')
- .add_boxplot(alpha=0.4, outlier_alpha=0.5)
- .adjust_labels(title='Box: Petal Width by Species',
-               x='Species', y='Petal Width'))
+# Create a density plot
+(iris.tidyplot(x='sepal_width', color='species')
+     .add_density(alpha=0.3)
+     .adjust_labels(title='Sepal Width Density', 
+                    x='Sepal Width', y='Density'))
 ```
+![Density Plot](figures/1.6_density.png)
 
-<h3 id="density-plot">Density Plot</h3>
-
+### Line Plot
 ```python
-(tips.tidyplot(x='total_bill')
- .add_density(alpha=0.4)
- .adjust_labels(title='Density: Total Bill Distribution',
-               x='Total Bill', y='Density'))
-```
+# Load flights dataset
+flights = sns.load_dataset('flights')
 
-<h3 id="step-plot">Step Plot</h3>
-
-```python
-tips_sorted = tips.sort_values('tip')
-tips_sorted['cumsum'] = tips_sorted['tip'].cumsum()
-(tips_sorted.tidyplot(x=range(len(tips)), y='cumsum')
- .add_step(direction='hv')
- .adjust_labels(title='Step: Cumulative Tips',
-               x='Count', y='Cumulative Tips'))
-```
-
-<h3 id="dot-plot">Dot Plot</h3>
-
-```python
-(iris.tidyplot(x='petal_length', color='species')
- .add_dotplot(binwidth=0.2, stackdir='up', binaxis='x')
- .adjust_labels(title='Dot: Petal Length Distribution',
-               x='Petal Length', y='Count'))
-```
-
-<h3 id="bar-plot">Bar Plot</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_bar(stat='identity', width=0.7, alpha=0.7)
- .adjust_labels(title='Bar: Tips by Day',
-               x='Day', y='Total Tips'))
-```
-
-<h3 id="line-plot">Line Plot</h3>
-
-```python
-monthly_passengers = flights.groupby('year')['passengers'].mean().reset_index()
-(monthly_passengers.tidyplot(x='year', y='passengers')
- .add_line(size=1, alpha=1.0)
- .adjust_labels(title='Line: Average Passengers by Year',
-               x='Year', y='Passengers'))
-```
-
-### Statistical Plots
-
-<h3 id="hex-plot">Hex Plot</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_hex(bins=20)
- .adjust_labels(title='Hex: Tips vs Total Bill',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="mean-bar">Mean Bar</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_mean_bar(alpha=0.4, width=0.7)
- .adjust_labels(title='Mean Bar: Average Tips by Day',
-               x='Day', y='Average Tip'))
-```
-
-<h3 id="sem-errorbar">SEM Error Bar</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_mean_bar(alpha=0.4, width=0.7)
- .add_sem_errorbar(width=0.2)
- .adjust_labels(title='SEM: Tips by Day',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="sd-errorbar">SD Error Bar</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_mean_bar(alpha=0.4, width=0.7)
- .add_sd_errorbar(width=0.2)
- .adjust_labels(title='SD: Tips by Day',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="beeswarm-plot">Beeswarm Plot</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_beeswarm(size=3, alpha=0.7)
- .adjust_labels(title='Beeswarm: Tips by Day',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="smooth-plot">Smooth Plot</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_smooth(method='lm', se=True, alpha=0.2)
- .adjust_labels(title='Smooth: Tips vs Total Bill',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="density-2d">2D Density Plot</h3>
-
-```python
-(iris.tidyplot(x='sepal_length', y='sepal_width')
- .add_density_2d(alpha=0.7)
- .adjust_labels(title='2D Density: Sepal Dimensions',
-               x='Sepal Length', y='Sepal Width'))
-```
-
-<h3 id="regression">Regression Plot</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_regression_line(ci=True, alpha=0.2)
- .adjust_labels(title='Regression: Tips vs Total Bill',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="ci-errorbar">CI Error Bar</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_mean_bar(alpha=0.4, width=0.7)
- .add_ci_errorbar(width=0.2, ci=0.95)
- .adjust_labels(title='CI: Tips by Day',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="custom-errorbar">Custom Error Bar</h3>
-
-```python
-tips_summary = tips.groupby('day').agg({
-    'tip': ['mean', lambda x: x.mean() - x.std(), lambda x: x.mean() + x.std()]
-}).reset_index()
-tips_summary.columns = ['day', 'mean', 'lower', 'upper']
-(tips_summary.tidyplot(x='day', y='mean')
- .add_mean_bar(alpha=0.4, width=0.7)
- .add_errorbar(ymin='lower', ymax='upper', width=0.2)
- .adjust_labels(title='Custom Error: Tips by Day',
-               x='Day', y='Tip Amount'))
-```
-
-### Advanced Plots
-
-<h3 id="correlation">Correlation Plot</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_correlation_text(method='pearson', format='.3f')
- .adjust_labels(title='Correlation: Tips vs Total Bill',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="ribbon-plot">Ribbon Plot</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_ribbon(ymin='tip_min', ymax='tip_max', alpha=0.3)
- .adjust_labels(title='Ribbon: Tips Range',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="density-2d-filled">2D Density Filled</h3>
-
-```python
-(iris.tidyplot(x='sepal_length', y='sepal_width')
- .add_density_2d_filled(alpha=0.7)
- .adjust_labels(title='2D Density Filled: Sepal Dimensions',
-               x='Sepal Length', y='Sepal Width'))
-```
-
-<h3 id="rug-plot">Rug Plot</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_rug(sides='b', alpha=0.5, length=0.03)
- .adjust_labels(title='Rug: Tips vs Total Bill',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="pvalue">P-value Plot</h3>
-
-```python
-(iris.tidyplot(x='species', y='petal_length')
- .add_boxplot(alpha=0.4)
- .add_test_pvalue(test='anova', paired=False)
- .adjust_labels(title='P-value: Petal Length by Species',
-               x='Species', y='Petal Length'))
-```
-
-<h3 id="count-plot">Count Plot</h3>
-
-```python
-(titanic.tidyplot(x='class')
- .add_count()
- .adjust_labels(title='Count: Passenger Class',
-               x='Class', y='Count'))
-```
-
-### Customization Examples
-
-<h3 id="jitter-plot">Jitter Plot</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_jitter(width=0.2, size=3, alpha=0.7)
- .adjust_labels(title='Jitter: Tips by Day',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="hline">Horizontal Line</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_hline(yintercept=tips['tip'].mean(), color='red', alpha=0.7)
- .adjust_labels(title='HLine: Mean Tip',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="vline">Vertical Line</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_vline(xintercept=tips['total_bill'].mean(), color='red', alpha=0.7)
- .adjust_labels(title='VLine: Mean Total Bill',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="text-annotation">Text Annotation</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_text(x=20, y=8, label='Custom Text', color='red')
- .adjust_labels(title='Text: Tips vs Total Bill',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="no-legend">No Legend</h3>
-
-```python
-(iris.tidyplot(x='sepal_length', y='sepal_width', color='species')
- .add_scatter(size=3, alpha=0.7)
- .adjust_labels(title='No Legend Example')
- .adjust_legend_show(False))
-```
-
-<h3 id="rotated-labels">Rotated Labels</h3>
-
-```python
-diamonds_cut = diamonds.groupby('cut')['price'].mean().reset_index()
-(diamonds_cut.tidyplot(x='cut', y='price')
- .add_bar(alpha=0.7)
- .adjust_labels(title='Bar Plot with Rotated Labels',
-               x='Diamond Cut Category', y='Average Price')
- .adjust_axis_text_angle(45))
-```
-
-### Complex Examples
-
-<h3 id="boxplot-jitter">Boxplot with Jitter</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_boxplot(alpha=0.3)
- .add_jitter(width=0.2, size=3, alpha=0.5)
- .adjust_labels(title='Box Plot with Jittered Points',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="violin-quartiles">Violin with Quartiles</h3>
-
-```python
-(tips.tidyplot(x='day', y='tip')
- .add_violin(alpha=0.4, draw_quantiles=[0.25, 0.5, 0.75])
- .adjust_labels(title='Violin Plot with Quartiles',
-               x='Day', y='Tip Amount'))
-```
-
-<h3 id="correlation-advanced">Advanced Correlation</h3>
-
-```python
-(tips.tidyplot(x='total_bill', y='tip')
- .add_scatter(size=3, alpha=0.7)
- .add_smooth(method='lm', se=True)
- .add_correlation_text(method='pearson')
- .adjust_labels(title='Correlation with Regression',
-               x='Total Bill', y='Tip'))
-```
-
-<h3 id="time-series">Time Series</h3>
-
-```python
+# Create a line plot
 (flights.tidyplot(x='year', y='passengers')
- .add_line(size=1)
- .add_smooth(method='loess', span=0.2)
- .adjust_labels(title='Passenger Trends Over Time',
-               x='Year', y='Number of Passengers'))
+        .add_line(size=2)
+        .adjust_labels(title='Passenger Trends', 
+                       x='Year', y='Number of Passengers'))
 ```
+![Line Plot](figures/1_line.png)
 
-<h3 id="density-groups">Density Groups</h3>
-
+### Bar Plot
 ```python
-(tips.tidyplot(x='total_bill', color='time')
- .add_density(alpha=0.5)
- .adjust_labels(title='Bill Distribution by Time',
-               x='Total Bill', y='Density'))
+# Create a bar plot
+tips = sns.load_dataset('tips')
+
+# Average tip by day
+(tips.tidyplot(x='day', y='tip')
+     .add_bar(stat='mean')
+     .adjust_labels(title='Average Tip by Day', 
+                    x='Day', y='Average Tip'))
 ```
+![Bar Plot](figures/1.3_bar.png)
 
-<h3 id="scatter-groups">Scatter Groups</h3>
-
+### Dot Plot
 ```python
-(iris.tidyplot(x='sepal_length', y='sepal_width', color='species')
- .add_scatter(size=3, alpha=0.7)
- .add_smooth(method='lm', se=True)
- .adjust_labels(title='Sepal Dimensions by Species',
-               x='Sepal Length', y='Sepal Width'))
+# Create a dot plot
+(iris.tidyplot(x='species', y='sepal_length')
+     .add_dotplot()
+     .adjust_labels(title='Sepal Length Dot Plot', 
+                    x='Species', y='Sepal Length'))
 ```
+![Dot Plot](figures/1.8_dot.png)
+
+### Mean Bar Plot
+```python
+# Mean bar plot with error bars
+(tips.tidyplot(x='day', y='total_bill')
+     .add_mean_bar(alpha=0.5)
+     .add_sem_errorbar()
+     .adjust_labels(title='Mean Total Bill by Day', 
+                    x='Day', y='Total Bill'))
+```
+![Mean Bar Plot](figures/2.1_mean_bar.png)
+
+### Curve Fitting
+```python
+# Scatter plot with curve fitting
+(tips.tidyplot(x='total_bill', y='tip')
+     .add_scatter()
+     .add_smooth(method='lm')
+     .adjust_labels(title='Tip vs Total Bill', 
+                    x='Total Bill', y='Tip'))
+```
+![Curve Fitting](figures/7.5_curve_fit.png)
+
+### Ribbon Plot (SEM)
+```python
+# Ribbon plot showing standard error
+(tips.groupby('day')['total_bill']
+     .apply(lambda x: pd.DataFrame({
+         'mean': x.mean(),
+         'sem': x.sem()
+     }))
+     .reset_index()
+     .tidyplot(x='day', y='mean')
+     .add_line()
+     .add_ribbon(ymin='mean - sem', ymax='mean + sem', alpha=0.3)
+     .adjust_labels(title='Total Bill with SEM', 
+                    x='Day', y='Total Bill'))
+```
+![Ribbon Plot](figures/7.6.1_sem_ribbon.png)
+
+### Hexbin Plot
+```python
+# Hexbin plot for density visualization
+(tips.tidyplot(x='total_bill', y='tip')
+     .add_hex(bins=20)
+     .adjust_labels(title='Total Bill vs Tip Density', 
+                    x='Total Bill', y='Tip'))
+```
+![Hexbin Plot](figures/7.1_hexbin.png)
+
+### Count Plot
+```python
+# Count plot
+titanic = sns.load_dataset('titanic')
+(titanic.tidyplot(x='class', fill='survived')
+        .add_bar(stat='count')
+        .adjust_labels(title='Passenger Count by Class and Survival', 
+                       x='Class', y='Count'))
+```
+![Count Plot](figures/3.5_count.png)
 
 ## Color Palettes
 
