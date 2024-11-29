@@ -33,7 +33,7 @@ print("\nCreating scatter plot...")
  .save('figures/01_scatter_iris.png'))
 
 # 1.2 Line Plot
-monthly_passengers = flights.groupby('year')['passengers'].mean().reset_index()
+monthly_passengers = flights.groupby('year', observed=True)['passengers'].mean().reset_index()
 (monthly_passengers.tidyplot(x='year', y='passengers')
  .add_line(size=1, alpha=1.0)
  .adjust_labels(title='Line: Average Passengers by Year',
@@ -118,7 +118,7 @@ tips_sorted['cumsum'] = tips_sorted['tip'].cumsum()
  .save('figures/12_ci_errorbar_tips.png'))
 
 # 2.5 Custom Error Bar
-tips_summary = tips.groupby('day').agg({
+tips_summary = tips.groupby('day', observed=True).agg({
     'tip': ['mean', lambda x: x.mean() - x.std(), lambda x: x.mean() + x.std()]
 }).reset_index()
 tips_summary.columns = ['day', 'mean', 'lower', 'upper']
@@ -171,26 +171,12 @@ tips_summary.columns = ['day', 'mean', 'lower', 'upper']
 
 # 3. Distribution Plots
 
-# 3.1 2D Density
+# 3.1 Density 2D Plot
 (iris.tidyplot(x='sepal_length', y='sepal_width')
- .add_density_2d(alpha=0.7)
- .adjust_labels(title='2D Density: Sepal Dimensions',
+ .add_density_2d()
+ .adjust_labels(title='Density 2D: Sepal Length vs Width',
                x='Sepal Length', y='Sepal Width')
  .save('figures/19_density_2d_iris.png'))
-
-# 3.2 2D Density Filled
-(iris.tidyplot(x='sepal_length', y='sepal_width')
- .add_density_2d_filled(alpha=0.7)
- .adjust_labels(title='2D Density Filled: Sepal Dimensions',
-               x='Sepal Length', y='Sepal Width')
- .save('figures/20_density_2d_filled_iris.png'))
-
-# 3.3 Hex Plot
-(tips.tidyplot(x='total_bill', y='tip')
- .add_hex(bins=20)
- .adjust_labels(title='Hex: Tips vs Total Bill',
-               x='Total Bill', y='Tip')
- .save('figures/21_hex_tips.png'))
 
 # 3.4 Rug Plot
 (tips.tidyplot(x='total_bill', y='tip')
@@ -285,7 +271,7 @@ tips_rolling = pd.DataFrame({
  .save('figures/31_no_legend_iris.png'))
 
 # Test adjust_axis_text_angle with long category names
-diamonds_cut = diamonds.groupby('cut')['price'].mean().reset_index()
+diamonds_cut = diamonds.groupby('cut', observed=True)['price'].mean().reset_index()
 (diamonds_cut.tidyplot(x='cut', y='price')
  .add_bar(alpha=0.7)
  .adjust_labels(title='Bar Plot with Rotated Labels',
@@ -293,4 +279,132 @@ diamonds_cut = diamonds.groupby('cut')['price'].mean().reset_index()
  .adjust_axis_text_angle(45)
  .save('figures/32_rotated_labels_diamonds.png'))
 
-print("All API functions have been tested with example plots. Check the 'figures' directory for output.")
+# 3. Sum Functions
+print("\nTesting sum functions...")
+# Group tips by day
+tips_by_day = tips.groupby('day', observed=True)['total_bill'].sum().reset_index()
+
+(tips_by_day.tidyplot(x='day', y='total_bill')
+ .add_sum_bar()
+ .adjust_labels(title='Sum Bar: Total Bills by Day')
+ .save('figures/sum_bar.png'))
+
+(tips_by_day.tidyplot(x='day', y='total_bill')
+ .add_sum_line()
+ .add_sum_dot()
+ .adjust_labels(title='Sum Line with Dots: Total Bills by Day')
+ .save('figures/sum_line_dot.png'))
+
+# 4. Median Functions
+print("\nTesting median functions...")
+(tips.groupby('day', observed=True)['total_bill'].median().reset_index().tidyplot(x='day', y='total_bill')
+ .add_median_bar()
+ .adjust_labels(title='Median Bar: Bills by Day')
+ .save('figures/median_bar.png'))
+
+(tips.tidyplot(x='total_bill', y='tip')
+ .add_scatter()
+ .add_curve_fit()
+ .adjust_labels(title='Curve Fit: Tips vs Total Bill')
+ .save('figures/curve_fit.png'))
+
+# 5. Ribbon Functions
+print("\nTesting ribbon functions...")
+# Create time series data
+np.random.seed(42)
+dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='D')
+values = np.random.normal(loc=10, scale=2, size=len(dates))
+ts_data = pd.DataFrame({'date': dates, 'value': values})
+
+(ts_data.tidyplot(x='date', y='value')
+ .add_line()
+ .add_sem_ribbon()
+ .adjust_labels(title='Time Series with SEM Ribbon')
+ .save('figures/sem_ribbon.png'))
+
+(ts_data.tidyplot(x='date', y='value')
+ .add_line()
+ .add_ci95_ribbon()
+ .adjust_labels(title='Time Series with 95% CI Ribbon')
+ .save('figures/ci95_ribbon.png'))
+
+# 6. Stack Functions
+print("\nTesting stack functions...")
+# Calculate survival rates by class
+titanic_class = (titanic.groupby(['class', 'survived'], observed=True)
+                 .size()
+                 .unstack()
+                 .fillna(0))
+titanic_class.columns = ['Not Survived', 'Survived']
+titanic_class = titanic_class.reset_index()
+
+# Calculate percentages
+total = titanic_class['Not Survived'] + titanic_class['Survived']
+titanic_class['Survived %'] = titanic_class['Survived'] / total * 100
+titanic_class['Not Survived %'] = titanic_class['Not Survived'] / total * 100
+
+# Melt for plotting
+titanic_relative = pd.melt(titanic_class, 
+                          id_vars=['class'],
+                          value_vars=['Survived %', 'Not Survived %'],
+                          var_name='Status',
+                          value_name='Percentage')
+
+titanic_absolute = pd.melt(titanic_class,
+                          id_vars=['class'],
+                          value_vars=['Survived', 'Not Survived'],
+                          var_name='Status',
+                          value_name='Count')
+
+(titanic_relative.tidyplot(x='class', y='Percentage', fill='Status')
+ .add_barstack_relative()
+ .adjust_labels(title='Survival Rate by Class',
+               y='Percentage')
+ .save('figures/barstack_relative.png'))
+
+(titanic_absolute.tidyplot(x='class', y='Count', fill='Status')
+ .add_barstack_absolute()
+ .adjust_labels(title='Survival Count by Class',
+               y='Count')
+ .save('figures/barstack_absolute.png'))
+
+# 7. Pie and Donut Charts
+print("\nTesting pie and donut charts...")
+class_counts = titanic['class'].value_counts().reset_index()
+class_counts.columns = ['class', 'count']
+
+(class_counts.tidyplot(x='class', y='count')
+ .add_pie()
+ .adjust_labels(title='Passenger Distribution by Class')
+ .save('figures/pie_chart.png'))
+
+(class_counts.tidyplot(x='class', y='count')
+ .add_donut()
+ .adjust_labels(title='Passenger Distribution by Class (Donut)')
+ .save('figures/donut_chart.png'))
+
+# 8. Advanced Label Management
+print("\nTesting label management functions...")
+# Sort diamonds by price
+diamonds_sorted = diamonds.groupby('cut', observed=True)['price'].mean().reset_index()
+
+(diamonds_sorted.tidyplot(x='cut', y='price')
+ .add_bar()
+ .sort_x_axis_labels('ascending')
+ .add_data_labels_repel()
+ .adjust_axis_text_angle(45)
+ .save('figures/labels_diamonds.png'))
+
+# Test label renaming
+cut_rename = {'Fair': 'Low Grade', 'Good': 'Medium Grade', 
+              'Very Good': 'High Grade', 'Premium': 'Premium Grade', 
+              'Ideal': 'Ideal Grade'}
+
+(diamonds_sorted.tidyplot(x='cut', y='price')
+ .add_bar()
+ .rename_x_axis_labels(cut_rename)
+ .adjust_labels(title='Diamond Prices by Grade')
+ .adjust_axis_text_angle(45)
+ .save('figures/renamed_labels.png'))
+
+print("\nAll examples have been generated in the 'figures' directory.")

@@ -2,23 +2,25 @@
 
 import pandas as pd
 import numpy as np
-from plotnine import *
 from plotnine import (
     ggplot, aes, labs, annotate,
     # Geometries
-    geom_point, geom_line, geom_bar, geom_boxplot,
-    geom_violin, geom_density, geom_errorbar, geom_text,
-    geom_step, geom_dotplot, geom_jitter, geom_hline, geom_vline, geom_ribbon,
-    geom_rug,
-    # Statistics
-    stat_summary, stat_density_2d, stat_smooth, stat_bin_2d,
-    # Scales
-    scale_x_continuous, scale_y_continuous,
+    geom_point, geom_line, geom_bar, geom_boxplot, geom_violin, 
+    geom_density, geom_step, geom_dotplot, geom_jitter, geom_text, 
+    geom_smooth, geom_quantile, geom_rug, geom_ribbon, geom_area,
+    geom_hline, geom_vline, geom_errorbar,
+    # Stats
+    stat_density_2d, stat_count, stat_bin_2d, stat_summary, stat_smooth,
+    # Positions
+    position_jitterdodge, position_stack, position_fill,
+    # Coordinates and scales
+    coord_flip, scale_x_continuous, scale_y_continuous, scale_x_discrete,
     scale_color_manual, scale_fill_manual,
-    # Themes
-    theme, element_text, facet_wrap
+    # Themes and elements
+    theme, theme_minimal, element_text, element_blank, facet_wrap,
+    # Guides
+    guides, guide_legend
 )
-from plotnine.stats import stat_bin_2d
 from typing import Optional, List, Union, Dict, Any
 from . import palettes
 from . import themes
@@ -34,7 +36,7 @@ class TidyPlot:
         self.plot = None
         self.prism = themes.TidyPrism()
     
-    def __call__(self, x: str, y: str = None, color: Optional[str] = None):
+    def __call__(self, x: str, y: str = None, color: Optional[str] = None, fill: Optional[str] = None):
         """Create a new plot with the given aesthetics.
         
         Parameters:
@@ -45,15 +47,16 @@ class TidyPlot:
             Column name for y-axis
         color : str, optional
             Column name for color aesthetic
+        fill : str, optional
+            Column name for fill aesthetic
         """
         mapping = aes(x=x)
         if y is not None:
             mapping = aes(x=x, y=y)
-            if color is not None:
-                mapping = aes(x=x, y=y, color=color)
-        else:
-            if color is not None:
-                mapping = aes(x=x, fill=color)
+        if color is not None:
+            mapping = aes(x=x, y=y, color=color) if y is not None else aes(x=x, color=color)
+        if fill is not None:
+            mapping = aes(x=x, y=y, fill=fill) if y is not None else aes(x=x, fill=fill)
             
         self.plot = (ggplot(self._obj, mapping) +
                     themes.TidyPrism.theme_prism())  # Use Prism theme by default
@@ -333,3 +336,286 @@ class TidyPlot:
         """Save the plot to a file."""
         self.plot.save(filename, **kwargs)
         return self
+
+    def add_sum_bar(self, width: float = 0.7, alpha: float = 0.7):
+        """Add bars showing sums."""
+        self.plot = self.plot + stat_summary(fun_y=np.sum, geom='bar', width=width, alpha=alpha)
+        return self
+
+    def add_sum_dash(self, width: float = 0.7, alpha: float = 0.7):
+        """Add dashes showing sums."""
+        self.plot = self.plot + stat_summary(fun_y=np.sum, geom='linerange', width=width, alpha=alpha)
+        return self
+
+    def add_sum_dot(self, size: float = 3, alpha: float = 0.7):
+        """Add dots showing sums."""
+        self.plot = self.plot + stat_summary(fun_y=np.sum, geom='point', size=size, alpha=alpha)
+        return self
+
+    def add_sum_value(self, size: float = 11, format: str = "%.1f"):
+        """Add text values showing sums."""
+        def sum_label(x):
+            return f"{np.sum(x):{format}}"
+        self.plot = self.plot + stat_summary(fun_y=sum_label, geom='text', size=size)
+        return self
+
+    def add_sum_line(self, size: float = 1, alpha: float = 1):
+        """Add lines showing sums."""
+        self.plot = self.plot + stat_summary(fun_y=np.sum, geom='line', size=size, alpha=alpha)
+        return self
+
+    def add_sum_area(self, alpha: float = 0.7):
+        """Add areas showing sums."""
+        self.plot = self.plot + stat_summary(fun_y=np.sum, geom='area', alpha=alpha)
+        return self
+
+    def add_heatmap(self, alpha: float = 0.7):
+        """Add heatmap visualization."""
+        self.plot = self.plot + geom_tile(alpha=alpha)
+        return self
+
+    def add_median_bar(self, width: float = 0.7, alpha: float = 0.7):
+        """Add bars showing medians."""
+        self.plot = self.plot + stat_summary(fun_y=np.median, geom='bar', width=width, alpha=alpha)
+        return self
+
+    def add_median_dash(self, width: float = 0.7, alpha: float = 0.7):
+        """Add dashes showing medians."""
+        self.plot = self.plot + stat_summary(fun_y=np.median, geom='linerange', width=width, alpha=alpha)
+        return self
+
+    def add_median_dot(self, size: float = 3, alpha: float = 0.7):
+        """Add dots showing medians."""
+        self.plot = self.plot + stat_summary(fun_y=np.median, geom='point', size=size, alpha=alpha)
+        return self
+
+    def add_median_value(self, size: float = 11, format: str = "%.1f"):
+        """Add text values showing medians."""
+        def median_label(x):
+            return f"{np.median(x):{format}}"
+        self.plot = self.plot + stat_summary(fun_y=median_label, geom='text', size=size)
+        return self
+
+    def add_median_line(self, size: float = 1, alpha: float = 1):
+        """Add lines showing medians."""
+        self.plot = self.plot + stat_summary(fun_y=np.median, geom='line', size=size, alpha=alpha)
+        return self
+
+    def add_median_area(self, alpha: float = 0.7):
+        """Add areas showing medians."""
+        self.plot = self.plot + stat_summary(fun_y=np.median, geom='area', alpha=alpha)
+        return self
+
+    def add_curve_fit(self):
+        """Add fitted curve."""
+        self.plot = self.plot + stat_smooth(method='loess', se=False)
+        return self
+
+    def add_sem_ribbon(self, alpha: float = 0.2):
+        """Add ribbon showing standard error of mean."""
+        self.plot = self.plot + stat_smooth(method='loess', se=True, alpha=alpha)
+        return self
+
+    def add_range_ribbon(self, alpha: float = 0.2):
+        """Add ribbon showing range."""
+        def range_fun(x):
+            return pd.DataFrame({
+                'y': [np.mean(x)],
+                'ymin': [np.min(x)],
+                'ymax': [np.max(x)]
+            })
+        self.plot = self.plot + stat_summary(fun_data=range_fun, geom='ribbon', alpha=alpha)
+        return self
+
+    def add_sd_ribbon(self, alpha: float = 0.2):
+        """Add ribbon showing standard deviation."""
+        def sd_fun(x):
+            return pd.DataFrame({
+                'y': [np.mean(x)],
+                'ymin': [np.mean(x) - np.std(x)],
+                'ymax': [np.mean(x) + np.std(x)]
+            })
+        self.plot = self.plot + stat_summary(fun_data=sd_fun, geom='ribbon', alpha=alpha)
+        return self
+
+    def add_ci95_ribbon(self, alpha: float = 0.2):
+        """Add ribbon showing 95% confidence interval."""
+        self.plot = self.plot + stat_smooth(method='lm', se=True, alpha=alpha)
+        return self
+
+    def add_barstack_absolute(self, width: float = 0.7, alpha: float = 0.7):
+        """Add stacked bars (absolute)."""
+        self.plot = self.plot + geom_bar(stat='identity', position='stack', width=width, alpha=alpha)
+        return self
+
+    def add_barstack_relative(self, width: float = 0.7, alpha: float = 0.7):
+        """Add stacked bars (relative)."""
+        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=width, alpha=alpha)
+        return self
+
+    def add_areastack_absolute(self, alpha: float = 0.7):
+        """Add stacked areas (absolute)."""
+        self.plot = self.plot + geom_area(position='stack', alpha=alpha)
+        return self
+
+    def add_areastack_relative(self, alpha: float = 0.7):
+        """Add stacked areas (relative)."""
+        self.plot = self.plot + geom_area(position='fill', alpha=alpha)
+        return self
+
+    def add_pie(self):
+        """Add pie chart."""
+        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=1)
+        return self
+
+    def add_donut(self, inner_radius: float = 0.5):
+        """Add donut chart."""
+        self.plot = (self.plot + 
+                    geom_bar(stat='identity', position='fill', width=1) +
+                    theme(aspect_ratio=1) +
+                    theme(panel_grid=element_blank()) +
+                    theme(axis_text=element_blank()) +
+                    theme(axis_ticks=element_blank()))
+        return self
+
+    def add_data_labels_repel(self, size: float = 8):
+        """Add data labels with repulsion to avoid overlapping."""
+        value_label = self._obj[self._obj.columns[0]].astype(str)
+        self.plot = self.plot + geom_text(aes(label=value_label), size=size, va='bottom', nudge_y=0.05)
+        return self
+
+    def adjust_title(self, text: str, size: float = 14):
+        """Modify plot title."""
+        self.plot = self.plot + theme(plot_title=element_text(size=size)) + labs(title=text)
+        return self
+
+    def adjust_x_axis_title(self, text: str, size: float = 11):
+        """Modify x axis title."""
+        self.plot = self.plot + theme(axis_title_x=element_text(size=size)) + labs(x=text)
+        return self
+
+    def adjust_y_axis_title(self, text: str, size: float = 11):
+        """Modify y axis title."""
+        self.plot = self.plot + theme(axis_title_y=element_text(size=size)) + labs(y=text)
+        return self
+
+    def adjust_caption(self, text: str, size: float = 10):
+        """Modify plot caption."""
+        self.plot = self.plot + theme(plot_caption=element_text(size=size)) + labs(caption=text)
+        return self
+
+    def adjust_size(self, width: float, height: float):
+        """Modify plot size."""
+        self.plot = self.plot + theme(figure_size=(width, height))
+        return self
+
+    def adjust_padding(self, left: float = 0.1, right: float = 0.1, top: float = 0.1, bottom: float = 0.1):
+        """Modify plot padding."""
+        self.plot = self.plot + theme(plot_margin={"l": left, "r": right, "t": top, "b": bottom})
+        return self
+
+    def adjust_x_axis(self, limits: tuple = None, breaks: list = None, labels: list = None):
+        """Modify x axis properties."""
+        if limits:
+            self.plot = self.plot + scale_x_continuous(limits=limits)
+        if breaks:
+            self.plot = self.plot + scale_x_continuous(breaks=breaks)
+        if labels:
+            self.plot = self.plot + scale_x_continuous(labels=labels)
+        return self
+
+    def adjust_y_axis(self, limits: tuple = None, breaks: list = None, labels: list = None):
+        """Modify y axis properties."""
+        if limits:
+            self.plot = self.plot + scale_y_continuous(limits=limits)
+        if breaks:
+            self.plot = self.plot + scale_y_continuous(breaks=breaks)
+        if labels:
+            self.plot = self.plot + scale_y_continuous(labels=labels)
+        return self
+
+    def rename_y_axis_labels(self, mapping: dict):
+        """Rename y axis labels."""
+        self.plot = self.plot + scale_y_discrete(labels=mapping)
+        return self
+
+    def rename_x_axis_labels(self, mapping: Dict[str, str]):
+        """Rename x-axis labels using a mapping dictionary."""
+        self.plot = self.plot + scale_x_discrete(labels=mapping)
+        return self
+
+    def rename_color_labels(self, mapping: dict):
+        """Rename color labels."""
+        if 'color' in self.plot.mapping:
+            self.plot = self.plot + scale_color_discrete(labels=mapping)
+        else:
+            self.plot = self.plot + scale_fill_discrete(labels=mapping)
+        return self
+
+    def reorder_x_axis_labels(self, order: list):
+        """Reorder x axis labels."""
+        self.plot = self.plot + scale_x_discrete(limits=order)
+        return self
+
+    def reorder_y_axis_labels(self, order: list):
+        """Reorder y axis labels."""
+        self.plot = self.plot + scale_y_discrete(limits=order)
+        return self
+
+    def reorder_color_labels(self, order: list):
+        """Reorder color labels."""
+        if 'color' in self.plot.mapping:
+            self.plot = self.plot + scale_color_discrete(limits=order)
+        else:
+            self.plot = self.plot + scale_fill_discrete(limits=order)
+        return self
+
+    def sort_x_axis_labels(self, ascending: bool = True):
+        """Sort x axis labels."""
+        x = self.plot.mapping['x']
+        order = sorted(self._obj[x].unique(), reverse=not ascending)
+        return self.reorder_x_axis_labels(order)
+
+    def sort_y_axis_labels(self, ascending: bool = True):
+        """Sort y axis labels."""
+        y = self.plot.mapping['y']
+        order = sorted(self._obj[y].unique(), reverse=not ascending)
+        return self.reorder_y_axis_labels(order)
+
+    def sort_color_labels(self, ascending: bool = True):
+        """Sort color labels."""
+        if 'color' in self.plot.mapping:
+            color = self.plot.mapping['color']
+            order = sorted(self._obj[color].unique(), reverse=not ascending)
+        else:
+            color = self.plot.mapping.get('fill')
+            if color:
+                order = sorted(self._obj[color].unique(), reverse=not ascending)
+            else:
+                return self
+        return self.reorder_color_labels(order)
+
+    def reverse_x_axis_labels(self):
+        """Reverse x axis labels."""
+        x = self.plot.mapping['x']
+        order = list(reversed(self._obj[x].unique()))
+        return self.reorder_x_axis_labels(order)
+
+    def reverse_y_axis_labels(self):
+        """Reverse y axis labels."""
+        y = self.plot.mapping['y']
+        order = list(reversed(self._obj[y].unique()))
+        return self.reorder_y_axis_labels(order)
+
+    def reverse_color_labels(self):
+        """Reverse color labels."""
+        if 'color' in self.plot.mapping:
+            color = self.plot.mapping['color']
+            order = list(reversed(self._obj[color].unique()))
+        else:
+            color = self.plot.mapping.get('fill')
+            if color:
+                order = list(reversed(self._obj[color].unique()))
+            else:
+                return self
+        return self.reorder_color_labels(order)

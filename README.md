@@ -157,6 +157,16 @@ iris = sns.load_dataset("iris")
 
 ## Plot Examples
 
+```python
+# Load all available seaborn datasets
+iris = sns.load_dataset("iris")
+tips = sns.load_dataset("tips")
+titanic = sns.load_dataset("titanic")
+planets = sns.load_dataset("planets")
+diamonds = sns.load_dataset("diamonds")
+flights = sns.load_dataset("flights")
+```
+
 ### Basic Plots
 
 <h3 id="scatter-plot">Scatter Plot</h3>
@@ -572,3 +582,47 @@ And most importantly, contributions are more than welcome! Please feel free to s
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Missing functions
+
+Please note that not all the functions are available because of:
+
+1. plotnine being a younger library with fewer contributors
+2. Some R-specific features being harder to implement in Python
+3. Different underlying graphics engines (R's grid vs Python's matplotlib)
+
+The list is provided as below:
+
+1. **Removed Functions** :
+
+* `geom_hex()` - Hexagonal binning not available in plotnine
+* `geom_text_repel()` - Text repulsion for avoiding overlaps not available
+* `coord_polar()` - Polar coordinate system not fully supported
+* `stat_density_2d_filled()` - Filled 2D density plots not available
+* `geom_raster()` - High-performance raster rendering not available
+* `geom_sf()` - Simple features (geographic data) not supported
+* `geom_spoke()` - Spoke plots not available
+* `stat_ellipse()` - Statistical ellipses not supported
+* `geom_label()` - Labels with backgrounds not available
+* `geom_curve()` - Curved line segments not available
+
+1. **Modified Functions** :
+
+* `add_data_labels_repel()` - Modified to use regular `geom_text()` instead of `geom_text_repel()`
+* `add_pie_chart()` - Implemented using bar plots and coordinate transformations since native pie charts aren't supported
+* `add_donut_chart()` - Similar to pie charts, implemented through workarounds
+* `add_density_2d_filled()` - Had to use regular density_2d with modified aesthetics
+
+1. **Limited Functionality** :
+
+* `facet_grid()` - More limited options compared to ggplot2
+* `scale_*_gradient2()` - Diverging color scales have limited options
+* `theme()` - Some theme elements and customizations not available
+* `coord_fixed()` - Fixed coordinate ratio support is limited
+* `position_dodge2()` - Advanced dodging features not available
+
+1. **Performance Differences** :
+
+* Large dataset handling is generally slower in plotnine
+* Some smoothing methods in `stat_smooth()` have fewer options
+* Rendering of complex plots with many layers is less optimized

@@ -15,9 +15,9 @@ class TidyPlotAccessor:
         self._obj = pandas_obj
         self._plot = None
 
-    def __call__(self, x: str, y: str = None, color: str = None):
+    def __call__(self, x: str, y: str = None, color: str = None, fill: str = None):
         plot = TidyPlot(self._obj)
-        return plot(x=x, y=y, color=color)
+        return plot(x=x, y=y, color=color, fill=fill)
 
 __version__ = '0.1.0'
 __all__ = ['TidyPlot', 'palettes', 'themes']

@@ -8,553 +8,540 @@ TidyPlots is a lightweight, publication-ready plotting library for Python, inspi
 pip install tidyplots-python
 ```
 
-## Quick Start
+## API Overview
 
-```python
-import seaborn as sns
-import tidyplots
+### Core Functions
 
-# Create a plot
-iris = sns.load_dataset("iris")
-(iris.tidyplot(x='time', y='value')
-   .add_line()
-   .add_scatter()
-   .adjust_labels(title='Time Series Plot'))
-```
+#### Plot Creation
+- `tidyplot(data, mapping)`
+  - `data`: DataFrame containing the variables for plotting
+  - `mapping`: Aesthetic mapping (x, y, color, etc.)
+  - Returns: A new tidyplot object
 
-## Core API
+- `as_tidyplot(plot)`
+  - `plot`: A ggplot object to convert
+  - Returns: A tidyplot object
 
-### TidyPlot Class
-
-#### Constructor
-
-```python
-TidyPlot(data: pd.DataFrame, x: str, y: str = None, color: Optional[str] = None)
-```
-
-Creates a new TidyPlot object.
-
-Parameters:
-
-- `data`: Input DataFrame
-- `x`: Column name for x-axis
-- `y`: Column name for y-axis (optional for count plots)
-- `color`: Column name for color grouping (optional)
-
-### Data Visualization Methods
-
-#### Basic Plots
-
-##### add_scatter
-
-```python
-add_scatter(size: float = 3, alpha: float = 0.7)
-```
-
-Creates a scatter plot.
-
-##### add_line
-
-```python
-add_line(size: float = 1, alpha: float = 1.0)
-```
-
-Creates a line plot.
-
-##### add_bar
-
-```python
-add_bar(stat: str = 'identity', width: float = 0.7, alpha: float = 0.7)
-```
-
-Creates a bar plot.
-
-- `stat`: Type of bar plot ('identity', 'count', 'sum')
-- `width`: Width of the bars
-- `alpha`: Transparency of the bars
-
-##### add_boxplot
-
-```python
-add_boxplot(alpha: float = 0.4, outlier_alpha: float = 0.5)
-```
-
-Creates a box plot.
-
-##### add_violin
-
-```python
-add_violin(alpha: float = 0.4, draw_quantiles: list = [0.25, 0.5, 0.75])
-```
-
-Creates a violin plot with optional quantile lines.
-
-##### add_density
-
-```python
-add_density(alpha: float = 0.4)
-```
-
-Creates a density plot.
-
-##### add_step
-
-```python
-add_step(direction: str = "hv")
-```
-
-Creates a step plot.
-
-- `direction`: Direction of steps ("hv" horizontal then vertical, "vh" vertical then horizontal)
-
-##### add_dotplot
-
-```python
-add_dotplot(binwidth: float = None, stackdir: str = "up", binaxis: str = "x")
-```
-
-Creates a dot plot with stacking.
-
-- `binwidth`: Width of the bins (optional)
-- `stackdir`: Direction of stacking ("up", "down", "center")
-- `binaxis`: Axis to bin along ("x" or "y")
-
-#### Statistical Plots
-
-##### add_mean_bar
-
-```python
-add_mean_bar(alpha: float = 0.4, width: float = 0.7)
-```
-
-Adds bars showing mean values.
-
-##### add_sem_errorbar
-
-```python
-add_sem_errorbar(width: float = 0.2)
-```
-
-Adds error bars showing standard error of the mean.
-
-##### add_sd_errorbar
-
-```python
-add_sd_errorbar(width: float = 0.2)
-```
-
-Adds error bars showing standard deviation.
-
-##### add_ci_errorbar
-
-```python
-add_ci_errorbar(width: float = 0.2, ci: float = 0.95)
-```
-
-Adds error bars showing confidence interval.
-
-##### add_errorbar
-
-```python
-add_errorbar(ymin: str, ymax: str, width: float = 0.2)
-```
-
-Adds error bars using explicit min/max values.
-
-- `ymin`: Column name for lower bound
-- `ymax`: Column name for upper bound
-- `width`: Width of the error bars
-
-##### add_test_pvalue
-
-```python
-add_test_pvalue(test: str = 't', paired: bool = False, ref_group: Optional[str] = None)
-```
-
-Adds statistical test p-values.
-
-- `test`: Type of test ('t', 'wilcox', 'anova', 'kruskal')
-- `paired`: Whether to perform paired tests
-- `ref_group`: Reference group for pairwise comparisons
-
-##### add_correlation_text
-
-```python
-add_correlation_text(method: str = 'pearson', format: str = '.3f')
-```
-
-Adds correlation coefficient text.
-
-##### add_smooth
-
-```python
-add_smooth(method: str = "lm", se: bool = True, alpha: float = 0.2)
-```
-
-Adds a smoothed conditional mean with confidence interval.
-
-- `method`: Smoothing method ("lm" for linear model, "loess" for local regression)
-- `se`: Whether to display confidence interval
-- `alpha`: Transparency of the confidence interval
-
-##### add_regression_line
-
-```python
-add_regression_line(ci: bool = True, alpha: float = 0.2)
-```
-
-Adds a regression line with optional confidence interval.
-
-##### add_quantiles
-
-```python
-add_quantiles(quantiles: list = [0.25, 0.5, 0.75], alpha: float = 0.5, color: str = "red")
-```
-
-Adds horizontal lines at specified quantiles.
-
-#### Distribution Plots
-
-##### add_density_2d
-
-```python
-add_density_2d(alpha: float = 0.7)
-```
-
-Adds 2D density estimation contours.
-
-##### add_density_2d_filled
-
-```python
-add_density_2d_filled(alpha: float = 0.7)
-```
-
-Adds filled 2D density contours.
-
-##### add_hex
-
-```python
-add_hex(bins: int = 20)
-```
-
-Adds a hexagonal binning plot.
-
-##### add_rug
-
-```python
-add_rug(sides: str = "b", alpha: float = 0.5, length: float = 0.03)
-```
-
-Adds a marginal rug plot.
-
-- `sides`: Which sides to draw the rug ("t" top, "b" bottom, "l" left, "r" right)
-- `length`: Length of the rug lines as proportion of plot size
-
-##### add_count
-
-```python
-add_count(stat: str = "count", position: str = "stack")
-```
-
-Adds a count/frequency plot.
-
-- `stat`: Statistic to use ("count" or "proportion")
-- `position`: Position adjustment ("stack", "dodge", "fill")
-
-#### Data Point Visualizations
-
-##### add_data_points_beeswarm
-
-```python
-add_data_points_beeswarm(size: float = 3, alpha: float = 0.5)
-```
-
-Adds points in beeswarm arrangement.
-
-##### add_data_points_jitter
-
-```python
-add_data_points_jitter(width: float = 0.2, size: float = 3, alpha: float = 0.5)
-```
-
-Adds jittered points.
-
-#### Reference Lines
-
-##### add_hline
-
-```python
-add_hline(yintercept: float, linetype: str = "dashed", color: str = "black", alpha: float = 1.0)
-```
-
-Adds a horizontal reference line.
-
-##### add_vline
-
-```python
-add_vline(xintercept: float, linetype: str = "dashed", color: str = "black", alpha: float = 1.0)
-```
-
-Adds a vertical reference line.
-
-#### Annotations
-
-##### add_text
-
-```python
-add_text(label: str, x: float = None, y: float = None, ha: str = "center", va: str = "center", size: float = 11)
-```
-
-Adds text annotation at specific coordinates.
-
-- `ha`: Horizontal alignment ("left", "center", "right")
-- `va`: Vertical alignment ("top", "center", "bottom")
-
-##### add_ribbon
-
-```python
-add_ribbon(ymin: str, ymax: str, alpha: float = 0.3)
-```
-
-Adds a filled area between two lines.
-
-- `ymin`: Column name for lower bound
-- `ymax`: Column name for upper bound
-
-#### Customization Methods
-
-##### adjust_labels
-
-```python
-adjust_labels(title: str = None, x: str = None, y: str = None)
-```
-
-Modifies plot labels.
-
-##### adjust_colors
-
-```python
-adjust_colors(palette: str)
-```
-
-Changes color scheme.
-
-##### adjust_legend_position
-
-```python
-adjust_legend_position(position: str)
-```
-
-Modifies legend position ("right", "left", "top", "bottom", "none").
-
-##### remove_legend
-
-```python
-remove_legend()
-```
-
-Removes the legend.
-
-##### show
-
-```python
-show()
-```
-
-Displays the plot.
-
-### Additional Functions
+### Add Functions
 
 #### Data Points & Amounts
-- `add_data_points()`
-- `add_count_bar()`
-- `add_count_dash()`
-- `add_count_dot()`
-- `add_count_value()`
-- `add_count_line()`
-- `add_count_area()`
-- `add_sum_bar()`
-- `add_sum_dash()`
-- `add_sum_dot()`
-- `add_sum_value()`
-- `add_sum_line()`
-- `add_sum_area()`
-- `add_heatmap()`
-- `add_area()`
+- `add_data_points(size=3, alpha=0.7)`
+  - `size`: Point size (default: 3)
+  - `alpha`: Point transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_data_points_jitter(width=0.2, height=0.2, size=3, alpha=0.7)`
+  - `width`: Amount of horizontal jitter (default: 0.2)
+  - `height`: Amount of vertical jitter (default: 0.2)
+  - `size`: Point size (default: 3)
+  - `alpha`: Point transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_data_points_beeswarm(size=3, alpha=0.7)`
+  - `size`: Point size (default: 3)
+  - `alpha`: Point transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_count_bar(width=0.7, alpha=0.7)`
+  - `width`: Bar width (default: 0.7)
+  - `alpha`: Bar transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_count_dash(width=0.7, alpha=0.7)`
+  - `width`: Dash width (default: 0.7)
+  - `alpha`: Dash transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_count_dot(size=3, alpha=0.7)`
+  - `size`: Dot size (default: 3)
+  - `alpha`: Dot transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_count_value(size=11, format="%.0f")`
+  - `size`: Text size (default: 11)
+  - `format`: Number format string (default: "%.0f")
+  - Returns: Updated tidyplot object
+
+- `add_count_line(size=1, alpha=1)`
+  - `size`: Line width (default: 1)
+  - `alpha`: Line transparency (default: 1)
+  - Returns: Updated tidyplot object
+
+- `add_count_area(alpha=0.7)`
+  - `alpha`: Area transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_sum_bar(width=0.7, alpha=0.7)`
+  - `width`: Width of the bars
+  - `alpha`: Transparency of the bars
+  - Returns: Updated tidyplot object
+
+- `add_sum_dash(width=0.7, alpha=0.7)`
+  - `width`: Width of the dashes
+  - `alpha`: Transparency of the dashes
+  - Returns: Updated tidyplot object
+
+- `add_sum_dot(size=3, alpha=0.7)`
+  - `size`: Size of the dots
+  - `alpha`: Transparency of the dots
+  - Returns: Updated tidyplot object
+
+- `add_sum_value(size=11, format="%.1f")`
+  - `size`: Size of the text
+  - `format`: Format string for the values
+  - Returns: Updated tidyplot object
+
+- `add_sum_line(size=1, alpha=1)`
+  - `size`: Width of the line
+  - `alpha`: Transparency of the line
+  - Returns: Updated tidyplot object
+
+- `add_sum_area(alpha=0.7)`
+  - `alpha`: Transparency of the area
+  - Returns: Updated tidyplot object
+
+- `add_heatmap(alpha=0.7)`
+  - `alpha`: Transparency of the heatmap cells
+  - Returns: Updated tidyplot object
 
 #### Central Tendency
-- `add_mean_dash()`
-- `add_mean_dot()`
-- `add_mean_value()`
-- `add_mean_line()`
-- `add_mean_area()`
-- `add_median_bar()`
-- `add_median_dash()`
-- `add_median_dot()`
-- `add_median_value()`
-- `add_median_line()`
-- `add_median_area()`
+- `add_mean_bar(width=0.7, alpha=0.7)`
+  - `width`: Bar width (default: 0.7)
+  - `alpha`: Bar transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_mean_dash(width=0.7, alpha=0.7)`
+  - `width`: Dash width (default: 0.7)
+  - `alpha`: Dash transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_mean_dot(size=3, alpha=0.7)`
+  - `size`: Dot size (default: 3)
+  - `alpha`: Dot transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_mean_value(size=11, format="%.1f")`
+  - `size`: Text size (default: 11)
+  - `format`: Number format string (default: "%.1f")
+  - Returns: Updated tidyplot object
+
+- `add_mean_line(size=1, alpha=1)`
+  - `size`: Line width (default: 1)
+  - `alpha`: Line transparency (default: 1)
+  - Returns: Updated tidyplot object
+
+- `add_mean_area(alpha=0.7)`
+  - `alpha`: Area transparency (default: 0.7)
+  - Returns: Updated tidyplot object
+
+- `add_median_bar(width=0.7, alpha=0.7)`
+  - `width`: Width of the bars
+  - `alpha`: Transparency of the bars
+  - Returns: Updated tidyplot object
+
+- `add_median_dash(width=0.7, alpha=0.7)`
+  - `width`: Width of the dashes
+  - `alpha`: Transparency of the dashes
+  - Returns: Updated tidyplot object
+
+- `add_median_dot(size=3, alpha=0.7)`
+  - `size`: Size of the dots
+  - `alpha`: Transparency of the dots
+  - Returns: Updated tidyplot object
+
+- `add_median_value(size=11, format="%.1f")`
+  - `size`: Size of the text
+  - `format`: Format string for the values
+  - Returns: Updated tidyplot object
+
+- `add_median_line(size=1, alpha=1)`
+  - `size`: Width of the line
+  - `alpha`: Transparency of the line
+  - Returns: Updated tidyplot object
+
+- `add_median_area(alpha=0.7)`
+  - `alpha`: Transparency of the area
+  - Returns: Updated tidyplot object
+
 - `add_curve_fit()`
+  - Returns: Updated tidyplot object with fitted curve
 
 #### Distribution & Uncertainty
-- `add_histogram()`
-- `add_range_errorbar()`
-- `add_ci95_errorbar()`
-- `add_sem_ribbon()`
-- `add_range_ribbon()`
-- `add_sd_ribbon()`
-- `add_ci95_ribbon()`
+- `add_histogram(bins=30, alpha=0.7)`
+  - `bins`: Number of bins (default: 30)
+  - `alpha`: Bar transparency (default: 0.7)
+  - Returns: Updated tidyplot object
 
-#### Proportion
-- `add_barstack_absolute()`
-- `add_barstack_relative()`
-- `add_areastack_absolute()`
-- `add_areastack_relative()`
-- `add_pie()`
-- `add_donut()`
+- `add_boxplot(width=0.7, alpha=0.7, outlier_size=2)`
+  - `width`: Box width (default: 0.7)
+  - `alpha`: Box transparency (default: 0.7)
+  - `outlier_size`: Size of outlier points (default: 2)
+  - Returns: Updated tidyplot object
+
+- `add_violin(width=0.7, alpha=0.7, scale="area")`
+  - `width`: Violin width (default: 0.7)
+  - `alpha`: Violin transparency (default: 0.7)
+  - `scale`: Scaling method ("area", "count", "width")
+  - Returns: Updated tidyplot object
+
+- `add_sem_errorbar(width=0.2)`
+  - `width`: Error bar width (default: 0.2)
+  - Returns: Updated tidyplot object
+
+- `add_range_errorbar(width=0.2)`
+  - `width`: Error bar width (default: 0.2)
+  - Returns: Updated tidyplot object
+
+- `add_sd_errorbar(width=0.2)`
+  - `width`: Error bar width (default: 0.2)
+  - Returns: Updated tidyplot object
+
+- `add_ci95_errorbar(width=0.2)`
+  - `width`: Error bar width (default: 0.2)
+  - Returns: Updated tidyplot object
+
+- `add_sem_ribbon(alpha=0.2)`
+  - `alpha`: Transparency of the ribbon
+  - Returns: Updated tidyplot object
+
+- `add_range_ribbon(alpha=0.2)`
+  - `alpha`: Transparency of the ribbon
+  - Returns: Updated tidyplot object
+
+- `add_sd_ribbon(alpha=0.2)`
+  - `alpha`: Transparency of the ribbon
+  - Returns: Updated tidyplot object
+
+- `add_ci95_ribbon(alpha=0.2)`
+  - `alpha`: Transparency of the ribbon
+  - Returns: Updated tidyplot object
 
 #### Statistical Testing
-- `add_test_asterisks()`
+- `add_test_pvalue(format="%.3f", size=11)`
+  - `format`: Number format string (default: "%.3f")
+  - `size`: Text size (default: 11)
+  - Returns: Updated tidyplot object
+
+- `add_test_asterisks(size=11)`
+  - `size`: Text size (default: 11)
+  - Returns: Updated tidyplot object
+
+#### Proportion
+- `add_barstack_absolute(width=0.7, alpha=0.7)`
+  - `width`: Width of the bars
+  - `alpha`: Transparency of the bars
+  - Returns: Updated tidyplot object
+
+- `add_barstack_relative(width=0.7, alpha=0.7)`
+  - `width`: Width of the bars
+  - `alpha`: Transparency of the bars
+  - Returns: Updated tidyplot object
+
+- `add_areastack_absolute(alpha=0.7)`
+  - `alpha`: Transparency of the areas
+  - Returns: Updated tidyplot object
+
+- `add_areastack_relative(alpha=0.7)`
+  - `alpha`: Transparency of the areas
+  - Returns: Updated tidyplot object
+
+- `add_pie()`
+  - Returns: Updated tidyplot object with pie chart
+
+- `add_donut(inner_radius=0.5)`
+  - `inner_radius`: Ratio of inner radius to outer radius
+  - Returns: Updated tidyplot object with donut chart
 
 #### Annotation
-- `add_title()`
-- `add_caption()`
-- `add_data_labels()`
-- `add_data_labels_repel()`
+- `add_title(text, size=14)`
+  - `text`: Title text
+  - `size`: Text size (default: 14)
+  - Returns: Updated tidyplot object
+
+- `add_caption(text, size=10)`
+  - `text`: Caption text
+  - `size`: Text size (default: 10)
+  - Returns: Updated tidyplot object
+
+- `add_data_labels(size=11, format="%.1f")`
+  - `size`: Text size (default: 11)
+  - `format`: Number format string (default: "%.1f")
+  - Returns: Updated tidyplot object
+
+- `add_data_labels_repel(size=11, format="%.1f")`
+  - `size`: Size of the text labels
+  - `format`: Format string for the values
+  - Returns: Updated tidyplot object
+
 - `add_reference_lines()`
+  - Returns: Updated tidyplot object
 
-#### Remove
+### Remove Functions
+- `remove_legend()`
+  - Returns: Updated tidyplot object
+  - Description: Removes the entire legend from the plot
+
 - `remove_legend_title()`
+  - Returns: Updated tidyplot object
+  - Description: Removes only the legend title while keeping the legend itself
+
 - `remove_padding()`
+  - Returns: Updated tidyplot object
+  - Description: Removes padding around the plot area
+
 - `remove_title()`
+  - Returns: Updated tidyplot object
+  - Description: Removes the plot title
+
 - `remove_caption()`
+  - Returns: Updated tidyplot object
+  - Description: Removes the plot caption
+
 - `remove_x_axis()`
+  - Returns: Updated tidyplot object
+  - Description: Removes the entire x-axis including line, ticks, labels, and title
+
 - `remove_x_axis_line()`
+  - Returns: Updated tidyplot object
+  - Description: Removes only the x-axis line while keeping other elements
+
 - `remove_x_axis_ticks()`
+  - Returns: Updated tidyplot object
+  - Description: Removes x-axis tick marks while keeping other elements
+
 - `remove_x_axis_labels()`
+  - Returns: Updated tidyplot object
+  - Description: Removes x-axis tick labels while keeping other elements
+
 - `remove_x_axis_title()`
+  - Returns: Updated tidyplot object
+  - Description: Removes x-axis title while keeping other elements
+
 - `remove_y_axis()`
+  - Returns: Updated tidyplot object
+  - Description: Removes the entire y-axis including line, ticks, labels, and title
+
 - `remove_y_axis_line()`
+  - Returns: Updated tidyplot object
+  - Description: Removes only the y-axis line while keeping other elements
+
 - `remove_y_axis_ticks()`
+  - Returns: Updated tidyplot object
+  - Description: Removes y-axis tick marks while keeping other elements
+
 - `remove_y_axis_labels()`
+  - Returns: Updated tidyplot object
+  - Description: Removes y-axis tick labels while keeping other elements
+
 - `remove_y_axis_title()`
+  - Returns: Updated tidyplot object
+  - Description: Removes y-axis title while keeping other elements
 
-#### Adjust Components & Properties
-- `adjust_font()`
-- `adjust_legend_title()`
-- `adjust_title()`
-- `adjust_x_axis_title()`
-- `adjust_y_axis_title()`
-- `adjust_caption()`
-- `adjust_size()`
-- `adjust_padding()`
-- `adjust_x_axis()`
-- `adjust_y_axis()`
+### Adjust Functions
 
-#### Axis and Color Labels
-- `rename_x_axis_labels()`
-- `rename_y_axis_labels()`
-- `rename_color_labels()`
-- `reorder_x_axis_labels()`
-- `reorder_y_axis_labels()`
-- `reorder_color_labels()`
-- `sort_x_axis_labels()`
-- `sort_y_axis_labels()`
-- `sort_color_labels()`
+#### Components & Properties
+- `adjust_colors(palette)`
+  - `palette`: Color palette name or list of colors
+  - Returns: Updated tidyplot object
+
+- `adjust_font(family="Arial", size=11)`
+  - `family`: Font family name (default: "Arial")
+  - `size`: Base font size (default: 11)
+  - Returns: Updated tidyplot object
+
+- `adjust_legend_title(text, size=11)`
+  - `text`: Legend title text
+  - `size`: Text size (default: 11)
+  - Returns: Updated tidyplot object
+
+- `adjust_legend_position(position)`
+  - `position`: Legend position ("right", "left", "top", "bottom", "none")
+  - Returns: Updated tidyplot object
+
+- `adjust_title(text, size=14)`
+  - `text`: New title text
+  - `size`: Font size of the title
+  - Returns: Updated tidyplot object
+
+- `adjust_x_axis_title(text, size=11)`
+  - `text`: New x-axis title text
+  - `size`: Font size of the title
+  - Returns: Updated tidyplot object
+
+- `adjust_y_axis_title(text, size=11)`
+  - `text`: New y-axis title text
+  - `size`: Font size of the title
+  - Returns: Updated tidyplot object
+
+- `adjust_caption(text, size=10)`
+  - `text`: New caption text
+  - `size`: Font size of the caption
+  - Returns: Updated tidyplot object
+
+- `adjust_size(width, height)`
+  - `width`: Width of the plot in inches
+  - `height`: Height of the plot in inches
+  - Returns: Updated tidyplot object
+
+- `adjust_padding(left=0.1, right=0.1, top=0.1, bottom=0.1)`
+  - `left`: Left padding ratio
+  - `right`: Right padding ratio
+  - `top`: Top padding ratio
+  - `bottom`: Bottom padding ratio
+  - Returns: Updated tidyplot object
+
+- `adjust_x_axis(limits=None, breaks=None, labels=None)`
+  - `limits`: Tuple of (min, max) for axis limits
+  - `breaks`: List of tick positions
+  - `labels`: List of tick labels
+  - Returns: Updated tidyplot object
+
+- `adjust_y_axis(limits=None, breaks=None, labels=None)`
+  - `limits`: Tuple of (min, max) for axis limits
+  - `breaks`: List of tick positions
+  - `labels`: List of tick labels
+  - Returns: Updated tidyplot object
+
+#### Label Management
+- `rename_x_axis_labels(mapping)`
+  - `mapping`: Dictionary of old labels to new labels
+  - Returns: Updated tidyplot object
+
+- `rename_y_axis_labels(mapping)`
+  - `mapping`: Dictionary mapping old labels to new labels
+  - Returns: Updated tidyplot object
+
+- `rename_color_labels(mapping)`
+  - `mapping`: Dictionary mapping old labels to new labels
+  - Returns: Updated tidyplot object
+
+- `reorder_x_axis_labels(order)`
+  - `order`: List specifying new order of labels
+  - Returns: Updated tidyplot object
+
+- `reorder_y_axis_labels(order)`
+  - `order`: List specifying new order of labels
+  - Returns: Updated tidyplot object
+
+- `reorder_color_labels(order)`
+  - `order`: List specifying new order of labels
+  - Returns: Updated tidyplot object
+
+- `sort_x_axis_labels(ascending=True)`
+  - `ascending`: Sort in ascending order if True
+  - Returns: Updated tidyplot object
+
+- `sort_y_axis_labels(ascending=True)`
+  - `ascending`: Sort in ascending order if True
+  - Returns: Updated tidyplot object
+
+- `sort_color_labels(ascending=True)`
+  - `ascending`: Sort in ascending order if True
+  - Returns: Updated tidyplot object
+
 - `reverse_x_axis_labels()`
+  - Returns: Updated tidyplot object
+
 - `reverse_y_axis_labels()`
+  - Returns: Updated tidyplot object
+
 - `reverse_color_labels()`
+  - Returns: Updated tidyplot object
+
+### Themes and Colors
 
 #### Themes
 - `theme_tidyplot()`
+  - Returns: Updated tidyplot object
+  - Description: Applies the default tidyplot theme with clean, publication-ready styling
+
 - `theme_ggplot2()`
+  - Returns: Updated tidyplot object
+  - Description: Applies a theme that mimics the default ggplot2 styling
+
 - `theme_minimal_xy()`
+  - Returns: Updated tidyplot object
+  - Description: Applies a minimal theme with both x and y axes
+
 - `theme_minimal_x()`
+  - Returns: Updated tidyplot object
+  - Description: Applies a minimal theme with only x-axis
+
 - `theme_minimal_y()`
+  - Returns: Updated tidyplot object
+  - Description: Applies a minimal theme with only y-axis
 
 #### Color Schemes
-- `colors_discrete_friendly`
-- `colors_discrete_seaside`
-- `colors_discrete_apple`
-- `colors_discrete_friendly_long`
-- `colors_discrete_okabeito`
-- `colors_discrete_ibm`
-- `colors_discrete_metro`
-- `colors_discrete_candy`
-- `colors_continuous_viridis`
-- `colors_continuous_magma`
-- `colors_continuous_inferno`
-- `colors_continuous_plasma`
-- `colors_continuous_cividis`
-- `colors_continuous_rocket`
-- `colors_continuous_mako`
-- `colors_continuous_turbo`
-- `colors_continuous_bluepinkyellow`
-- `colors_diverging_blue2red`
-- `colors_diverging_blue2brown`
-- `colors_diverging_BuRd`
-- `colors_diverging_BuYlRd`
-- `colors_diverging_spectral`
-- `colors_diverging_icefire`
-- `new_color_scheme()`
+- Discrete Colors:
+  - `colors_discrete_friendly`: Colorblind-friendly palette
+  - `colors_discrete_seaside`: Seaside-inspired color palette
+  - `colors_discrete_apple`: Apple-inspired color palette
+  - `colors_discrete_friendly_long`: Extended colorblind-friendly palette
+  - `colors_discrete_okabeito`: Okabe-Ito color palette
+  - `colors_discrete_ibm`: IBM color palette
+  - `colors_discrete_metro`: Metro-inspired color palette
+  - `colors_discrete_candy`: Candy-inspired color palette
 
-#### Split
-- `split_plot()`
+- Continuous Colors:
+  - `colors_continuous_viridis`: Perceptually uniform sequential colormap
+  - `colors_continuous_magma`: Perceptually uniform sequential colormap
+  - `colors_continuous_inferno`: Perceptually uniform sequential colormap
+  - `colors_continuous_plasma`: Perceptually uniform sequential colormap
+  - `colors_continuous_cividis`: Colorblind-friendly sequential colormap
+  - `colors_continuous_rocket`: Sequential colormap with smooth transitions
+  - `colors_continuous_mako`: Sequential colormap with smooth transitions
+  - `colors_continuous_turbo`: Improved rainbow colormap
+  - `colors_continuous_bluepinkyellow`: Blue-Pink-Yellow sequential colormap
 
-#### Output
+- Diverging Colors:
+  - `colors_diverging_blue2red`: Blue to Red diverging colormap
+  - `colors_diverging_blue2brown`: Blue to Brown diverging colormap
+  - `colors_diverging_BuRd`: Blue-Red diverging colormap
+  - `colors_diverging_BuYlRd`: Blue-Yellow-Red diverging colormap
+  - `colors_diverging_spectral`: Spectral diverging colormap
+  - `colors_diverging_icefire`: Ice-Fire diverging colormap
+
+### Output Functions
 - `view_plot()`
-- `save_plot()`
+  - Returns: None (displays plot)
 
-#### Helpers
+- `save_plot(filename, width=7, height=7, dpi=300)`
+  - `filename`: Output file path
+  - `width`: Plot width in inches (default: 7)
+  - `height`: Plot height in inches (default: 7)
+  - `dpi`: Resolution in dots per inch (default: 300)
+  - Returns: None
+
+### Helper Functions
 - `all_rows()`
-- `filter_rows()`
-- `max_rows()`
-- `min_rows()`
-- `first_rows()`
-- `last_rows()`
-- `sample_rows()`
-- `add()`
-- `as_tidyplot()`
-- `flip_plot()`
-- `format_number()`
-- `format_p_value()`
+- `filter_rows(condition)`
+  - `condition`: Boolean condition for filtering
+  - Returns: Filtered data
 
-## Examples
+- `max_rows(column)`
+  - `column`: Column name to find maximum values
+  - Returns: Filtered data
 
-Here are some common plotting scenarios:
+- `min_rows(column)`
+  - `column`: Column name to find minimum values
+  - Returns: Filtered data
 
-### Time Series Plot
+- `first_rows(n=1)`
+  - `n`: Number of rows to select (default: 1)
+  - Returns: First n rows
 
-```python
-(df.tidyplot(x='time', y='value')
-   .add_line()
-   .add_scatter()
-   .adjust_labels(title='Time Series Plot', x='Date', y='Value'))
-```
+- `last_rows(n=1)`
+  - `n`: Number of rows to select (default: 1)
+  - Returns: Last n rows
 
-### Grouped Scatter Plot
+- `sample_rows(n=1)`
+  - `n`: Number of rows to sample (default: 1)
+  - Returns: Random sample of rows
 
-```python
-(df.tidyplot(x='x', y='y', color='group')
-   .add_scatter()
-   .adjust_labels(title='Grouped Scatter Plot', x='X', y='Y'))
-```
+- `format_number(format="%.1f")`
+  - `format`: Number format string (default: "%.1f")
+  - Returns: Formatted number string
 
-### Statistical Plot with Error Bars
-
-```python
-(df.tidyplot(x='group', y='value')
-   .add_mean_bar()
-   .add_ci_errorbar()
-   .adjust_labels(title='Mean Values with 95% CI', x='Group', y='Value'))
-```
-
-### Distribution Plot
-
-```python
-(df.tidyplot(x='value', color='group')
-   .add_density(alpha=0.5)
-   .adjust_labels(title='Distribution by Group', x='Value', y='Density'))
-```
-
-For more examples, check out the examples directory in the repository.
+- `format_p_value(format="%.3f")`
+  - `format`: Number format string (default: "%.3f")
+  - Returns: Formatted p-value string
