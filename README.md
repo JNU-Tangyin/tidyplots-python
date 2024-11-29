@@ -3,52 +3,52 @@
 <div align="center">
 <table>
 <tr>
-<td><a href="#scatter-plot"><img src="figures/01_scatter_iris.png" width="150"/></a></td>
-<td><a href="#violin-plot"><img src="figures/05_violin_iris.png" width="150"/></a></td>
-<td><a href="#box-plot"><img src="figures/04_box_iris.png" width="150"/></a></td>
-<td><a href="#density-plot"><img src="figures/06_density_tips.png" width="150"/></a></td>
-<td><a href="#step-plot"><img src="figures/07_step_tips.png" width="150"/></a></td>
-<td><a href="#dot-plot"><img src="figures/08_dot_iris.png" width="150"/></a></td>
+<td><img src="figures/1_scatter.png" width="150"/></td>
+<td><img src="figures/1.4_box.png" width="150"/></td>
+<td><img src="figures/1.5_violin.png" width="150"/></td>
+<td><img src="figures/1.6_density.png" width="150"/></td>
+<td><img src="figures/1_line.png" width="150"/></td>
+<td><img src="figures/1.3_bar.png" width="150"/></td>
 </tr>
 <tr>
-<td><a href="#bar-plot"><img src="figures/03_bar_tips.png" width="150"/></a></td>
-<td><a href="#line-plot"><img src="figures/02_line_flights.png" width="150"/></a></td>
-<td><a href="#hex-plot"><img src="figures/21_hex_tips.png" width="150"/></a></td>
-<td><a href="#mean-bar"><img src="figures/09_mean_bar_tips.png" width="150"/></a></td>
-<td><a href="#sem-errorbar"><img src="figures/10_sem_errorbar_tips.png" width="150"/></a></td>
-<td><a href="#sd-errorbar"><img src="figures/11_sd_errorbar_tips.png" width="150"/></a></td>
+<td><img src="figures/1.8_dot.png" width="150"/></td>
+<td><img src="figures/2.1_mean_bar.png" width="150"/></td>
+<td><img src="figures/7.5_curve_fit.png" width="150"/></td>
+<td><img src="figures/7.6.1_sem_ribbon.png" width="150"/></td>
+<td><img src="figures/7.1_hexbin.png" width="150"/></td>
+<td><img src="figures/3.5_count.png" width="150"/></td>
 </tr>
 <tr>
-<td><a href="#beeswarm-plot"><img src="figures/24_beeswarm_tips.png" width="150"/></a></td>
-<td><a href="#smooth-plot"><img src="figures/16_smooth_tips.png" width="150"/></a></td>
-<td><a href="#density-2d"><img src="figures/19_density_2d_iris.png" width="150"/></a></td>
-<td><a href="#regression"><img src="figures/17_regression_tips.png" width="150"/></a></td>
-<td><a href="#ci-errorbar"><img src="figures/12_ci_errorbar_tips.png" width="150"/></a></td>
-<td><a href="#custom-errorbar"><img src="figures/13_custom_errorbar_tips.png" width="150"/></a></td>
+<td><img src="figures/5.4.2_scatter.png" width="150"/></td>
+<td><img src="figures/7.2_density_2d_filled.png" width="150"/></td>
+<td><img src="figures/4.1_plot.png" width="150"/></td>
+<td><img src="figures/5.4_bar.png" width="150"/></td>
+<td><img src="figures/2.7_scatter.png" width="150"/></td>
+<td><img src="figures/2.8_scatter.png" width="150"/></td>
 </tr>
 <tr>
-<td><a href="#correlation"><img src="figures/15_correlation_tips.png" width="150"/></a></td>
-<td><a href="#ribbon-plot"><img src="figures/29_ribbon_tips.png" width="150"/></a></td>
-<td><a href="#density-2d-filled"><img src="figures/20_density_2d_filled_iris.png" width="150"/></a></td>
-<td><a href="#rug-plot"><img src="figures/22_rug_tips.png" width="150"/></a></td>
-<td><a href="#pvalue"><img src="figures/14_pvalue_iris.png" width="150"/></a></td>
-<td><a href="#count-plot"><img src="figures/23_count_titanic.png" width="150"/></a></td>
+<td><img src="figures/3.1_scatter.png" width="150"/></td>
+<td><img src="figures/3.4_scatter.png" width="150"/></td>
+<td><img src="figures/4.2_plot.png" width="150"/></td>
+<td><img src="figures/4_scatter.png" width="150"/></td>
+<td><img src="figures/5.1_scatter.png" width="150"/></td>
+<td><img src="figures/5.2_scatter.png" width="150"/></td>
 </tr>
 <tr>
-<td><a href="#jitter-plot"><img src="figures/25_jitter_tips.png" width="150"/></a></td>
-<td><a href="#hline"><img src="figures/26_hline_tips.png" width="150"/></a></td>
-<td><a href="#vline"><img src="figures/27_vline_tips.png" width="150"/></a></td>
-<td><a href="#text-annotation"><img src="figures/28_text_tips.png" width="150"/></a></td>
-<td><a href="#no-legend"><img src="figures/31_no_legend_iris.png" width="150"/></a></td>
-<td><a href="#rotated-labels"><img src="figures/32_rotated_labels_diamonds.png" width="150"/></a></td>
+<td><img src="figures/5.3_scatter.png" width="150"/></td>
+<td><img src="figures/5.4.1_line.png" width="150"/></td>
+<td><img src="figures/5.4.3_scatter.png" width="150"/></td>
+<td><img src="figures/6.1_bar.png" width="150"/></td>
+<td><img src="figures/6.2_bar.png" width="150"/></td>
+<td><img src="figures/7.2_plot.png" width="150"/></td>
 </tr>
 <tr>
-<td><a href="#boxplot-jitter"><img src="figures/boxplot_jitter.png" width="150"/></a></td>
-<td><a href="#violin-quartiles"><img src="figures/violin_quartiles.png" width="150"/></a></td>
-<td><a href="#correlation-advanced"><img src="figures/correlation.png" width="150"/></a></td>
-<td><a href="#time-series"><img src="figures/time_series.png" width="150"/></a></td>
-<td><a href="#density-groups"><img src="figures/density_groups.png" width="150"/></a></td>
-<td><a href="#scatter-groups"><img src="figures/scatter_groups.png" width="150"/></a></td>
+<td><img src="figures/7.3.1_sum_bar_value.png" width="150"/></td>
+<td><img src="figures/7.3.2_sum_line_dot.png" width="150"/></td>
+<td><img src="figures/7.3.3_sum_area.png" width="150"/></td>
+<td><img src="figures/7.4.1_median_bar_value.png" width="150"/></td>
+<td><img src="figures/7.4.2_median_line_dot.png" width="150"/></td>
+<td><img src="figures/7.4.3_median_area.png" width="150"/></td>
 </tr>
 </table>
 </div>
