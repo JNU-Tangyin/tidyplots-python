@@ -98,12 +98,10 @@ from tidyplots import TidyPlot
 iris = sns.load_dataset("iris")
 
 # Create a scatter plot with groups
-(data.tidyplot(x='x', y='y', color='group')
+(iris.tidyplot(x='x', y='y', color='group')
  .add_scatter()
  .add_smooth(method='lm')
- .adjust_labels(title='Grouped Scatter Plot', 
-               x='X Value', 
-               y='Y Value')
+ .adjust_labels(title='Grouped Scatter Plot')
  .show())
 ```
 

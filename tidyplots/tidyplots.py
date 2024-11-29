@@ -6,20 +6,20 @@ from plotnine import (
     ggplot, aes, labs, annotate,
     # Geometries
     geom_point, geom_line, geom_bar, geom_boxplot, geom_violin, 
-    geom_density, geom_step, geom_dotplot, geom_jitter, geom_text, 
+    geom_density, geom_step, geom_dotplot, geom_text, geom_jitter,
     geom_smooth, geom_quantile, geom_rug, geom_ribbon, geom_area,
     geom_hline, geom_vline, geom_errorbar,
     # Stats
     stat_density_2d, stat_count, stat_bin_2d, stat_summary, stat_smooth,
     # Positions
-    position_jitterdodge, position_stack, position_fill,
+    position_jitterdodge, position_stack, position_fill, position_dodge, position_jitter,
     # Coordinates and scales
     coord_flip, scale_x_continuous, scale_y_continuous, scale_x_discrete,
     scale_color_manual, scale_fill_manual,
     # Themes and elements
     theme, theme_minimal, element_text, element_blank, facet_wrap,
     # Guides
-    guides, guide_legend
+    guides, guide_legend, after_stat
 )
 from typing import Optional, List, Union, Dict, Any
 from . import palettes
@@ -35,6 +35,8 @@ class TidyPlot:
         self._obj = pandas_obj
         self.plot = None
         self.prism = themes.TidyPrism()
+        self._default_theme = self.prism.theme_prism()  # 设置默认主题为 theme_prism
+        self._default_palette = 'npg'  # 设置默认调色板为 npg
     
     def __call__(self, x: str, y: str = None, 
                 color: Optional[str] = None, 
@@ -44,46 +46,18 @@ class TidyPlot:
                 linetype: Optional[str] = None,
                 alpha: Optional[float] = None,
                 alpha_fill: Optional[float] = None):
-        """Create a new plot with the given aesthetics.
+        """Create a new plot with the given aesthetics."""
         
-        Parameters:
-        -----------
-        x : str
-            Column name for x-axis
-        y : str, optional
-            Column name for y-axis
-        color : str, optional
-            Column name for color aesthetic
-        fill : str, optional
-            Column name for fill aesthetic
-        shape : str, optional
-            Column name for shape aesthetic
-        size : str, optional
-            Column name for size aesthetic
-        linetype : str, optional
-            Column name for linetype aesthetic
-        alpha : float, optional
-            Alpha value for points
-        alpha_fill : float, optional
-            Alpha value for fill
-
-        """
-        avaliable_locals = {k:v for k,v in locals().items() if v is not None}
-        mapping = aes(avaliable_locals) # 本句替代下面整个block
-        # mapping = aes(x=x)
-        # if y is not None:
-        #     mapping = aes(x=x, y=y)
-        # if color is not None:
-        #     mapping = aes(x=x, y=y, color=color) if y is not None else aes(x=x, color=color)
-        # if fill is not None:
-        #     mapping = aes(x=x, y=y, fill=fill) if y is not None else aes(x=x, fill=fill)
-            
-        self.plot = (ggplot(self._obj, mapping) +
-                    themes.TidyPrism.theme_prism())  # Use Prism theme by default
+        # 构建映射字典，排除self和非映射参数
+        mapping_dict = {k:v for k,v in locals().items() 
+                        if v is not None and k not in ['self']}
         
-        # Apply NPG colors by default
-        colors = palettes.get_palette('npg')
-        if 'y' not in mapping:
+        self.plot = (ggplot(self._obj, aes(**mapping_dict)) +
+                    self._default_theme)  # 使用默认主题
+        
+        # 应用默认调色板
+        colors = palettes.get_palette(self._default_palette)
+        if 'y' not in mapping_dict:
             self.plot = self.plot + scale_fill_manual(values=colors)
         else:
             if color is not None:
@@ -91,34 +65,34 @@ class TidyPlot:
                 
         return self
     
-    def add_scatter(self, alpha: float = 0.6, size: float = 3):
+    def add_scatter(self,**kwargs): 
         """Add scatter points to the plot."""
-        self.plot = self.plot + geom_point(alpha=alpha, size=size)
+        self.plot = self.plot + geom_point(**kwargs)
         return self
     
-    def add_line(self, alpha: float = 0.8, size: float = 1):
+    def add_line(self,**kwargs): 
         """Add line to the plot."""
-        self.plot = self.plot + geom_line(alpha=alpha, size=size)
+        self.plot = self.plot + geom_line(**kwargs) 
         return self
     
-    def add_smooth(self, method: str = 'lm', se: bool = True, alpha: float = 0.2):
+    def add_smooth(self,**kwargs): 
         """Add smoothed conditional means."""
-        self.plot = self.plot + stat_smooth(method=method, se=se, alpha=alpha)
+        self.plot = self.plot + stat_smooth(**kwargs)
         return self
     
-    def add_bar(self, stat: str = 'identity', width: float = 0.7, alpha: float = 0.7):
+    def add_bar(self,stat:str ='identity', **kwargs): 
         """Add bar plot."""
-        self.plot = self.plot + geom_bar(stat=stat, width=width, alpha=alpha)
+        self.plot = self.plot + geom_bar(stat=stat, **kwargs)
         return self
     
-    def add_boxplot(self, alpha: float = 0.3, outlier_alpha: float = 0.5):
+    def add_boxplot(self,**kwargs): 
         """Add boxplot to the plot."""
-        self.plot = self.plot + geom_boxplot(alpha=alpha, outlier_alpha=outlier_alpha)
+        self.plot = self.plot + geom_boxplot(**kwargs)
         return self
     
-    def add_violin(self, alpha: float = 0.4, draw_quantiles: List[float] = [0.25, 0.5, 0.75]):
+    def add_violin(self, draw_quantiles: List[float] = [0.25, 0.5, 0.75], **kwargs):
         """Add violin plot."""
-        self.plot = self.plot + geom_violin(alpha=alpha, draw_quantiles=draw_quantiles)
+        self.plot = self.plot + geom_violin(draw_quantiles=draw_quantiles, **kwargs)
         return self
     
     def add_density(self, alpha: float = 0.3):
@@ -140,9 +114,9 @@ class TidyPlot:
         )
         return self
     
-    def add_data_points_jitter(self, width: float = 0.2, height: float = 0, alpha: float = 0.5, point_size: float = 3):
+    def add_data_points_jitter(self, **kwargs): 
         """Add jittered points to the plot."""
-        self.plot = self.plot + geom_jitter(width=width, height=height, alpha=alpha, size=point_size)
+        self.plot = self.plot + geom_jitter(**kwargs)
         return self
 
     def add_mean_bar(self, alpha: float = 0.4, width: float = 0.7):
@@ -269,22 +243,22 @@ class TidyPlot:
         self.plot = self.plot + geom_dotplot(binwidth=binwidth, stackdir=stackdir, binaxis=binaxis)
         return self
 
-    def add_step(self, direction: str = 'hv'):
+    def add_step(self, direction: str = 'hv', **kwargs):
         """Add step plot."""
-        self.plot = self.plot + geom_step(direction=direction)
+        self.plot = self.plot + geom_step(direction=direction, **kwargs)
         return self
 
-    def add_rug(self, sides: str = 'b', alpha: float = 0.5, length: float = 0.03):
+    def add_rug(self, sides: str = 'b', alpha: float = 0.5, length: float = 0.03, **kwargs):
         """Add rug plot."""
-        self.plot = self.plot + geom_rug(sides=sides, alpha=alpha, length=length)
+        self.plot = self.plot + geom_rug(sides=sides, alpha=alpha, length=length, **kwargs)
         return self
 
-    def add_count(self, stat: str = 'count', position: str = 'stack'):
+    def add_count(self, stat: str = 'count', position: str = 'stack', **kwargs):
         """Add count plot."""
-        self.plot = self.plot + geom_bar(stat=stat, position=position)
+        self.plot = self.plot + geom_bar(stat=stat, position=position, **kwargs)
         return self
 
-    def add_data_points_beeswarm(self, size: float = 3, alpha: float = 0.5):
+    def add_data_points_beeswarm(self, size: float = 3, alpha: float = 0.5, color: str = 'black', **kwargs):
         """Add beeswarm plot (approximated using controlled jitter)."""
         # Use jitter with very small width to approximate beeswarm
         self.plot = self.plot + geom_jitter(
@@ -292,7 +266,9 @@ class TidyPlot:
             height=0,
             size=size,
             alpha=alpha,
-            random_state=42  # For reproducibility
+            color=color,
+            random_state=42,  # For reproducibility
+            **kwargs
         )
         return self
 
@@ -306,14 +282,14 @@ class TidyPlot:
         self.plot = self.plot + geom_vline(xintercept=xintercept, linetype=linetype, color=color, alpha=alpha)
         return self
 
-    def add_text(self, label: str, x: float, y: float, ha: str = 'right', va: str = 'bottom', size: int = 11):
+    def add_text(self, label: str, x: float, y: float, ha: str = 'right', va: str = 'bottom', size: int = 11, **kwargs):
         """Add text annotation."""
-        self.plot = self.plot + annotate('text', x=x, y=y, label=label, ha=ha, va=va, size=size)
+        self.plot = self.plot + annotate('text', x=x, y=y, label=label, ha=ha, va=va, size=size, **kwargs)
         return self
 
-    def add_ribbon(self, ymin: str, ymax: str, alpha: float = 0.3):
+    def add_ribbon(self, ymin: str, ymax: str, alpha: float = 0.3, **kwargs):
         """Add ribbon plot."""
-        self.plot = self.plot + geom_ribbon(aes(ymin=ymin, ymax=ymax), alpha=alpha)
+        self.plot = self.plot + geom_ribbon(aes(ymin=ymin, ymax=ymax), alpha=alpha, **kwargs)
         return self
 
     def adjust_labels(self, title: str = None, x: str = None, y: str = None):
@@ -321,9 +297,13 @@ class TidyPlot:
         self.plot = self.plot + labs(title=title, x=x, y=y)
         return self
     
-    def adjust_colors(self, palette: str = 'npg'):
+    def adjust_colors(self, palette: Union[str, List[str]] = 'npg'):
         """Change color palette."""
-        colors = palettes.get_palette(palette)
+        self._default_palette = palette  # Update default palette
+        if isinstance(palette, str):
+            colors = palettes.get_palette(palette)
+        else:
+            colors = palette
         if 'y' not in self.plot.mapping:
             self.plot = self.plot + scale_fill_manual(values=colors)
         else:
@@ -375,8 +355,8 @@ class TidyPlot:
     def add_sum_value(self, size: float = 11, format: str = "%.1f"):
         """Add text values showing sums."""
         def sum_label(x):
-            return f"{np.sum(x):{format}}"
-        self.plot = self.plot + stat_summary(fun_y=sum_label, geom='text', size=size)
+            return np.sum(x)
+        self.plot = self.plot + stat_summary(fun_y=sum_label, geom='text', size=size, mapping=aes(label='y'), format_string=format)
         return self
 
     def add_sum_line(self, size: float = 1, alpha: float = 1):
@@ -411,9 +391,12 @@ class TidyPlot:
 
     def add_median_value(self, size: float = 11, format: str = "%.1f"):
         """Add text values showing medians."""
-        def median_label(x):
-            return f"{np.median(x):{format}}"
-        self.plot = self.plot + stat_summary(fun_y=median_label, geom='text', size=size)
+        def median_label(x, format="%.1f"):
+            """
+            Calculate median and return numeric value.
+            """
+            return np.median(x)
+        self.plot = self.plot + stat_summary(fun_y=median_label, geom='text', size=size, mapping=aes(label=after_stat('y')), format_string=format)
         return self
 
     def add_median_line(self, size: float = 1, alpha: float = 1):
@@ -463,24 +446,24 @@ class TidyPlot:
         self.plot = self.plot + stat_smooth(method='lm', se=True, alpha=alpha)
         return self
 
-    def add_barstack_absolute(self, width: float = 0.7, alpha: float = 0.7):
+    def add_barstack_absolute(self, stat: str = 'identity', width: float = 0.7, alpha: float = 0.7, **kwargs):
         """Add stacked bars (absolute)."""
-        self.plot = self.plot + geom_bar(stat='identity', position='stack', width=width, alpha=alpha)
+        self.plot = self.plot + geom_bar(stat=stat, width=width, alpha=alpha, **kwargs)
         return self
 
-    def add_barstack_relative(self, width: float = 0.7, alpha: float = 0.7):
+    def add_barstack_relative(self, width: float = 0.7, alpha: float = 0.7, **kwargs):
         """Add stacked bars (relative)."""
-        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=width, alpha=alpha)
+        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=width, alpha=alpha, **kwargs)
         return self
 
-    def add_areastack_absolute(self, alpha: float = 0.7):
+    def add_areastack_absolute(self, alpha: float = 0.7, **kwargs):
         """Add stacked areas (absolute)."""
-        self.plot = self.plot + geom_area(position='stack', alpha=alpha)
+        self.plot = self.plot + geom_area(position='stack', alpha=alpha, **kwargs)
         return self
 
-    def add_areastack_relative(self, alpha: float = 0.7):
+    def add_areastack_relative(self, alpha: float = 0.7, **kwargs):
         """Add stacked areas (relative)."""
-        self.plot = self.plot + geom_area(position='fill', alpha=alpha)
+        self.plot = self.plot + geom_area(position='fill', alpha=alpha, **kwargs)
         return self
 
     def add_pie(self):
@@ -531,9 +514,11 @@ class TidyPlot:
 
     def adjust_padding(self, left: float = 0.1, right: float = 0.1, top: float = 0.1, bottom: float = 0.1):
         """Modify plot padding."""
-        self.plot = self.plot + theme(plot_margin={"l": left, "r": right, "t": top, "b": bottom})
+        # Convert the values to a tuple of numbers in inches
+        margin = (top, right, bottom, left)
+        self.plot = self.plot + theme(plot_margin=margin)
         return self
-
+    
     def adjust_x_axis(self, limits: tuple = None, breaks: list = None, labels: list = None):
         """Modify x axis properties."""
         if limits:

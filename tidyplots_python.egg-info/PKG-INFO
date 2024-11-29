@@ -5,10 +5,12 @@ Summary: A Python implementation of R's tidyplots for creating publication-ready
 Home-page: https://github.com/JNU-Tangyin/tidyplots-python
 Author: Tangyin
 Author-email: tangyin@jnu.edu.cn
+License: UNKNOWN
 Project-URL: Bug Reports, https://github.com/JNU-Tangyin/tidyplots-python/issues
 Project-URL: Source, https://github.com/JNU-Tangyin/tidyplots-python
 Project-URL: Documentation, https://github.com/JNU-Tangyin/tidyplots-python#readme
 Keywords: data visualization,plotting,statistics,ggplot,tidyverse
+Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: MIT License
@@ -123,12 +125,10 @@ from tidyplots import TidyPlot
 iris = sns.load_dataset("iris")
 
 # Create a scatter plot with groups
-(data.tidyplot(x='x', y='y', color='group')
+(iris.tidyplot(x='x', y='y', color='group')
  .add_scatter()
  .add_smooth(method='lm')
- .adjust_labels(title='Grouped Scatter Plot', 
-               x='X Value', 
-               y='Y Value')
+ .adjust_labels(title='Grouped Scatter Plot')
  .show())
 ```
 
@@ -651,3 +651,5 @@ The list is provided as below:
 * Large dataset handling is generally slower in plotnine
 * Some smoothing methods in `stat_smooth()` have fewer options
 * Rendering of complex plots with many layers is less optimized
+
+

@@ -32,8 +32,10 @@ class TidyPrism:
         """
         return (theme_minimal(base_size=base_size, base_family=base_family) +
                 theme(
-                    axis_line=element_line(color="black", size=base_line_size),
-                    axis_text=element_text(color="black", angle=axis_text_angle),
+                    axis_line=element_line(color="black", size=base_line_size*2),
+                    axis_text=element_text(color="black", angle=axis_text_angle, face="bold"),
+                    axis_title_x=element_text(size=12,family="Arial",color="black", face="bold"),
+                    axis_title_y=element_text(size=12,family="Arial",color="black", face="bold"),
                     panel_grid_major=element_blank(),
                     panel_grid_minor=element_blank(),
                     panel_border=element_blank(),

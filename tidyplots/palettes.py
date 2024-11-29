@@ -219,17 +219,14 @@ def get_palette(name: str,
     # 检查索引是否有效
     if i >= len(palette):
         raise ValueError(f"Color index {i} out of range for palette with {len(palette)} colors")
-    if j is not None and j >= len(palette):
-        raise ValueError(f"Color index {j} out of range for palette with {len(palette)} colors")
     
     if type == 'sequential':
         # 从白色到第i个颜色的最深同类颜色
         return _create_sequential_gradient(palette[i], n)
         
     elif type == 'diverging':
-        # 如果没有指定j，使用i+1（循环到开头）
-        if j is None:
-            j = (i + 1) % len(palette)
+        # 使用i和i+1（循环到开头）
+        j = (i + 1) % len(palette)
         return _create_diverging_gradient(palette[i], palette[j], n)
         
     else:  # qualitative
