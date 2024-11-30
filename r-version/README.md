@@ -4,6 +4,8 @@ in this folder, files are:
 
 - `tidyplots-intro.pdf`   tidyplots introduction
 - `tidyplots.api.pdf `  tidyplots API document
+- `R_API_list.md`  R API list
+- `README.md` this file
 
 Other useful links are:
 
