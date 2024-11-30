@@ -399,9 +399,9 @@ class TidyPlot:
         self.plot = self.plot + stat_summary(fun_y=median_label, geom='text', size=size, mapping=aes(label=after_stat('y')), format_string=format)
         return self
 
-    def add_median_line(self, size: float = 1, alpha: float = 1):
+    def add_median_line(self, size: float = 1, alpha: float = 1, **kwargs):
         """Add lines showing medians."""
-        self.plot = self.plot + stat_summary(fun_y=np.median, geom='line', size=size, alpha=alpha)
+        self.plot = self.plot + stat_summary(fun_y=np.median, geom='line', size=size, alpha=alpha,  **kwargs)
         return self
 
     def add_median_area(self, alpha: float = 0.7):
@@ -414,12 +414,12 @@ class TidyPlot:
         self.plot = self.plot + stat_smooth(method='loess', se=False)
         return self
 
-    def add_sem_ribbon(self, alpha: float = 0.2):
+    def add_sem_ribbon(self, alpha: float = 0.2, color: str = 'grey', **kwargs):
         """Add ribbon showing standard error of mean."""
-        self.plot = self.plot + stat_smooth(method='loess', se=True, alpha=alpha)
+        self.plot = self.plot + stat_smooth(method='loess', se=True, alpha=alpha, color=color, **kwargs)
         return self
 
-    def add_range_ribbon(self, alpha: float = 0.2):
+    def add_range_ribbon(self, alpha: float = 0.2, color='grey', **kwargs):
         """Add ribbon showing range."""
         def range_fun(x):
             return pd.DataFrame({
@@ -427,10 +427,10 @@ class TidyPlot:
                 'ymin': [np.min(x)],
                 'ymax': [np.max(x)]
             })
-        self.plot = self.plot + stat_summary(fun_data=range_fun, geom='ribbon', alpha=alpha)
+        self.plot = self.plot + stat_summary(fun_data=range_fun, geom='ribbon', alpha=alpha, color=color, **kwargs)
         return self
 
-    def add_sd_ribbon(self, alpha: float = 0.2):
+    def add_sd_ribbon(self, alpha: float = 0.2, color: str = 'grey', **kwargs):
         """Add ribbon showing standard deviation."""
         def sd_fun(x):
             return pd.DataFrame({
@@ -438,12 +438,12 @@ class TidyPlot:
                 'ymin': [np.mean(x) - np.std(x)],
                 'ymax': [np.mean(x) + np.std(x)]
             })
-        self.plot = self.plot + stat_summary(fun_data=sd_fun, geom='ribbon', alpha=alpha)
+        self.plot = self.plot + stat_summary(fun_data=sd_fun, geom='ribbon', alpha=alpha, color=color, **kwargs)
         return self
 
-    def add_ci95_ribbon(self, alpha: float = 0.2):
+    def add_ci95_ribbon(self, alpha: float = 0.2, color='grey', **kwargs):
         """Add ribbon showing 95% confidence interval."""
-        self.plot = self.plot + stat_smooth(method='lm', se=True, alpha=alpha)
+        self.plot = self.plot + stat_smooth(method='lm', se=True, alpha=alpha, color=color, **kwargs)
         return self
 
     def add_barstack_absolute(self, stat: str = 'identity', width: float = 0.7, alpha: float = 0.7, **kwargs):
@@ -466,9 +466,9 @@ class TidyPlot:
         self.plot = self.plot + geom_area(position='fill', alpha=alpha, **kwargs)
         return self
 
-    def add_pie(self):
+    def add_pie(self, **kwargs):
         """Add pie chart."""
-        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=1)
+        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=1, **kwargs)
         return self
 
     def add_donut(self, inner_radius: float = 0.5):

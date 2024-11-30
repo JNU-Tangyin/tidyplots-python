@@ -271,13 +271,13 @@ median_bill = tips['total_bill'].median()
 
 tips_rolling = pd.DataFrame({
     'x': range(len(tips)),
-    'y': tips['tip'].rolling(20).mean(),
+    'y': tips['tip'],#.rolling(10).mean(),
     'ymin': tips['tip'].rolling(20).min(),
     'ymax': tips['tip'].rolling(20).max()
 }).dropna()
 (tips_rolling.tidyplot(x='x', y='y')
- .add_line(size=1, alpha=.8, color='blue')
- .add_ribbon(ymin='ymin', ymax='ymax', alpha=0.1, color='lightblue')
+ .add_line(size=1, alpha=.8, color='cyan')
+ .add_ribbon(ymin='ymin', ymax='ymax', alpha=0.1, color='grey')
  .adjust_labels(title='Ribbon: Rolling Tips Range', x='Index', y='Tip Amount')
  .save('figures/5.4.1_line.png'))
 
@@ -551,12 +551,12 @@ for date in dates:
 ts_data = pd.DataFrame(data)
 
 print("\nCreating statistical ribbon plots...")
-(ts_data.tidyplot(x='date', y='value')
- .add_line(size=1, alpha=1)
- .add_sem_ribbon(alpha=0.2)
- .adjust_labels(title='Time Series with SEM Ribbon',
-               x='Date', y='Value')
- .save('figures/7.6.1_sem_ribbon.png'))
+ts_data.tidyplot(x='date', y='value')
+    .add_line(size=1, alpha=.1, color='grey')
+    .add_sem_ribbon(alpha=0.1, color='navy', size=2)
+    .adjust_labels(title='Time Series with SEM Ribbon',
+                x='Date', y='Value')
+    .save('figures/7.6.1_sem_ribbon.png'))
 
 (ts_data.tidyplot(x='date', y='value')
  .add_line(size=1, alpha=1)

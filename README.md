@@ -98,14 +98,17 @@ from tidyplots import TidyPlot
 iris = sns.load_dataset("iris")
 
 # Create a scatter plot with groups
-(iris.tidyplot(x='x', y='y', color='group')
- .add_scatter()
- .add_smooth(method='lm')
- .adjust_labels(title='Grouped Scatter Plot')
+(iris.tidyplot(x='sepal_length', y='sepal_width', fill='species')
+ .add_scatter(size=5, alpha=0.5)
+ .add_density_2d(alpha=0.1)
+ .adjust_labels(title='Customization Test',
+               x='Sepal Length', y='Sepal Width')
+ .adjust_colors(['#1f77b4', '#ff7f0e', '#2ca02c'])
+ .adjust_legend_position('right')
  .show())
 ```
 
-<img src="figures/01_scatter_iris.png" width="500"/>
+<img src="figures/5.4.2_scatter.png" width="500"/>
 
 ## API Reference
 
@@ -156,6 +159,7 @@ iris = sns.load_dataset("iris")
 ## Examples
 
 ### Scatter Plot
+
 ```python
 import seaborn as sns
 from tidyplots import TidyPlot
@@ -169,9 +173,11 @@ iris = sns.load_dataset('iris')
      .adjust_labels(title='Iris Sepal Dimensions', 
                     x='Sepal Length', y='Sepal Width'))
 ```
+
 ![Scatter Plot](figures/1_scatter.png)
 
 ### Box Plot
+
 ```python
 # Create a box plot
 (iris.tidyplot(x='species', y='sepal_length')
@@ -180,9 +186,11 @@ iris = sns.load_dataset('iris')
      .adjust_labels(title='Sepal Length by Species', 
                     x='Species', y='Sepal Length'))
 ```
+
 ![Box Plot](figures/1.4_box.png)
 
 ### Violin Plot
+
 ```python
 # Create a violin plot
 (iris.tidyplot(x='species', y='petal_length')
@@ -190,9 +198,11 @@ iris = sns.load_dataset('iris')
      .adjust_labels(title='Petal Length Distribution', 
                     x='Species', y='Petal Length'))
 ```
+
 ![Violin Plot](figures/1.5_violin.png)
 
 ### Density Plot
+
 ```python
 # Create a density plot
 (iris.tidyplot(x='sepal_width', color='species')
@@ -200,9 +210,11 @@ iris = sns.load_dataset('iris')
      .adjust_labels(title='Sepal Width Density', 
                     x='Sepal Width', y='Density'))
 ```
+
 ![Density Plot](figures/1.6_density.png)
 
 ### Line Plot
+
 ```python
 # Load flights dataset
 flights = sns.load_dataset('flights')
@@ -213,9 +225,11 @@ flights = sns.load_dataset('flights')
         .adjust_labels(title='Passenger Trends', 
                        x='Year', y='Number of Passengers'))
 ```
+
 ![Line Plot](figures/1_line.png)
 
 ### Bar Plot
+
 ```python
 # Create a bar plot
 tips = sns.load_dataset('tips')
@@ -226,9 +240,11 @@ tips = sns.load_dataset('tips')
      .adjust_labels(title='Average Tip by Day', 
                     x='Day', y='Average Tip'))
 ```
+
 ![Bar Plot](figures/1.3_bar.png)
 
 ### Dot Plot
+
 ```python
 # Create a dot plot
 (iris.tidyplot(x='species', y='sepal_length')
@@ -236,9 +252,11 @@ tips = sns.load_dataset('tips')
      .adjust_labels(title='Sepal Length Dot Plot', 
                     x='Species', y='Sepal Length'))
 ```
+
 ![Dot Plot](figures/1.8_dot.png)
 
 ### Mean Bar Plot
+
 ```python
 # Mean bar plot with error bars
 (tips.tidyplot(x='day', y='total_bill')
@@ -247,9 +265,11 @@ tips = sns.load_dataset('tips')
      .adjust_labels(title='Mean Total Bill by Day', 
                     x='Day', y='Total Bill'))
 ```
+
 ![Mean Bar Plot](figures/2.1_mean_bar.png)
 
 ### Curve Fitting
+
 ```python
 # Scatter plot with curve fitting
 (tips.tidyplot(x='total_bill', y='tip')
@@ -258,9 +278,11 @@ tips = sns.load_dataset('tips')
      .adjust_labels(title='Tip vs Total Bill', 
                     x='Total Bill', y='Tip'))
 ```
+
 ![Curve Fitting](figures/7.5_curve_fit.png)
 
 ### Ribbon Plot (SEM)
+
 ```python
 # Ribbon plot showing standard error
 (tips.groupby('day')['total_bill']
@@ -275,9 +297,11 @@ tips = sns.load_dataset('tips')
      .adjust_labels(title='Total Bill with SEM', 
                     x='Day', y='Total Bill'))
 ```
+
 ![Ribbon Plot](figures/7.6.1_sem_ribbon.png)
 
 ### Hexbin Plot
+
 ```python
 # Hexbin plot for density visualization
 (tips.tidyplot(x='total_bill', y='tip')
@@ -285,9 +309,11 @@ tips = sns.load_dataset('tips')
      .adjust_labels(title='Total Bill vs Tip Density', 
                     x='Total Bill', y='Tip'))
 ```
+
 ![Hexbin Plot](figures/7.1_hexbin.png)
 
 ### Count Plot
+
 ```python
 # Count plot
 titanic = sns.load_dataset('titanic')
@@ -296,6 +322,7 @@ titanic = sns.load_dataset('titanic')
         .adjust_labels(title='Passenger Count by Class and Survival', 
                        x='Class', y='Count'))
 ```
+
 ![Count Plot](figures/3.5_count.png)
 
 ## Color Palettes
