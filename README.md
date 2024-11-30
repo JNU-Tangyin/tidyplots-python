@@ -292,7 +292,7 @@ tips = sns.load_dataset('tips')
      }))
      .reset_index()
      .tidyplot(x='day', y='mean')
-     .add_line()
+     .add_line(color='cyan')
      .add_ribbon(ymin='mean - sem', ymax='mean + sem', alpha=0.3)
      .adjust_labels(title='Total Bill with SEM', 
                     x='Day', y='Total Bill'))
