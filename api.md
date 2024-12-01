@@ -545,3 +545,105 @@ pip install tidyplots-python
 - `format_p_value(format="%.3f")`
   - `format`: Number format string (default: "%.3f")
   - Returns: Formatted p-value string
+
+### Faceting
+
+#### TidyPlot.__call__()
+
+Create a new plot with the given aesthetics.
+
+#### Parameters
+
+- `x` (str): Column name for x-axis
+- `y` (str, optional): Column name for y-axis
+- `color` (str, optional): Column name for color aesthetic
+- `fill` (str, optional): Column name for fill aesthetic
+- `shape` (str, optional): Column name for shape aesthetic
+- `size` (str, optional): Column name for size aesthetic
+- `linetype` (str, optional): Column name for linetype aesthetic
+- `split_by` (str or List[str], optional): Column name(s) for faceting
+  - If str: Single column name for facet_wrap
+  - If List[str]: Two column names for facet_grid (row, col)
+
+#### Returns
+- TidyPlot: Returns self for method chaining
+
+#### Examples
+
+##### Single Variable Faceting (facet_wrap)
+```python
+import pandas as pd
+import seaborn as sns
+from tidyplots import TidyPlot
+
+# Scatter plot with species faceting
+iris = sns.load_dataset("iris")
+(iris.tidyplot(x='sepal_length', y='sepal_width', split_by='species', fill='species')
+ .add_scatter(alpha=0.6)
+ .adjust_labels(title='Iris Measurements by Species')
+ .show())
+
+# Violin plot with island faceting
+penguins = sns.load_dataset("penguins")
+(penguins.tidyplot(x='species', y='body_mass_g', split_by='island', fill='species')
+ .add_violin(alpha=0.7)
+ .show())
+```
+
+<div align="center">
+<table>
+<tr>
+<td><img src="figures/13.1_iris_facet_wrap.png" width="400"/></td>
+<td><img src="figures/13.3_penguins_facet_wrap.png" width="400"/></td>
+</tr>
+</table>
+</div>
+
+##### Two-Variable Faceting (facet_grid)
+```python
+# Scatter plot with day and time faceting
+tips = sns.load_dataset("tips")
+(tips.tidyplot(x='total_bill', y='tip', split_by=['day', 'time'], fill='smoker')
+ .add_scatter(alpha=0.6)
+ .show())
+
+# Boxplot with color and clarity faceting
+diamonds = sns.load_dataset("diamonds")
+diamonds_subset = diamonds.sample(n=1000, random_state=42)
+(diamonds_subset.tidyplot(x='cut', y='price', split_by=['color', 'clarity'], fill='color')
+ .add_boxplot(alpha=0.7)
+ .show())
+```
+
+<div align="center">
+<table>
+<tr>
+<td><img src="figures/13.2_tips_facet_grid.png" width="400"/></td>
+<td><img src="figures/13.4_diamonds_facet_grid.png" width="400"/></td>
+</tr>
+</table>
+</div>
+
+##### Bar Plot with Sex Faceting
+```python
+# Bar plot with sex faceting
+titanic = sns.load_dataset("titanic")
+titanic['survived'] = titanic['survived'].map({0: 'No', 1: 'Yes'})
+survival_data = titanic.groupby(['class', 'sex', 'survived']).size().reset_index(name='count')
+(survival_data.tidyplot(x='class', y='count', fill='survived', split_by='sex')
+ .add_bar(position='dodge', alpha=0.7)
+ .show())
+```
+
+<div align="center">
+<img src="figures/13.5_titanic_facet_wrap.png" width="400"/>
+</div>
+
+### Plot Types
+
+#### add_scatter()
+Add scatter points to the plot.
+
+#### add_line()
+Add line to the plot.
+{{ ... }}

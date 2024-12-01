@@ -62,8 +62,21 @@ class TidyPlot:
         """
         
         # 构建映射字典，排除self和非映射参数
-        mapping_dict = {k:v for k,v in locals().items() 
-                        if v is not None and k not in ['self', 'split_by']}
+        mapping_dict = {}
+        if x is not None:
+            mapping_dict['x'] = x
+        if y is not None:
+            mapping_dict['y'] = y
+        if color is not None:
+            mapping_dict['color'] = color
+        if fill is not None:
+            mapping_dict['fill'] = fill
+        if shape is not None:
+            mapping_dict['shape'] = shape
+        if size is not None:
+            mapping_dict['size'] = size
+        if linetype is not None:
+            mapping_dict['linetype'] = linetype
         
         self.plot = (ggplot(self._obj, aes(**mapping_dict)) +
                     self._default_theme)  # 使用默认主题
