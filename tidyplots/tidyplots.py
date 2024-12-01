@@ -17,7 +17,7 @@ from plotnine import (
     coord_flip, scale_x_continuous, scale_y_continuous, scale_x_discrete,
     scale_color_manual, scale_fill_manual,
     # Themes and elements
-    theme, theme_minimal, element_text, element_blank, facet_wrap,
+    theme, theme_minimal, element_text, element_blank, facet_wrap, facet_grid,
     # Guides
     guides, guide_legend, after_stat
 )
@@ -44,13 +44,26 @@ class TidyPlot:
                 shape: Optional[str] = None,
                 size: Optional[str] = None,
                 linetype: Optional[str] = None,
-                alpha: Optional[float] = None,
-                alpha_fill: Optional[float] = None):
-        """Create a new plot with the given aesthetics."""
+                split_by: Optional[Union[str, List[str]]] = None,
+                **kwargs):
+        """Create a new plot with the given aesthetics.
+        
+        Args:
+            x: Column name for x-axis
+            y: Column name for y-axis
+            color: Column name for color aesthetic
+            fill: Column name for fill aesthetic
+            shape: Column name for shape aesthetic
+            size: Column name for size aesthetic
+            linetype: Column name for linetype aesthetic
+            split_by: Column name(s) for faceting. Can be either:
+                     - str: Single column name for facet_wrap
+                     - List[str]: Two column names for facet_grid (row, col)
+        """
         
         # 构建映射字典，排除self和非映射参数
         mapping_dict = {k:v for k,v in locals().items() 
-                        if v is not None and k not in ['self']}
+                        if v is not None and k not in ['self', 'split_by']}
         
         self.plot = (ggplot(self._obj, aes(**mapping_dict)) +
                     self._default_theme)  # 使用默认主题
@@ -62,6 +75,17 @@ class TidyPlot:
         else:
             if color is not None:
                 self.plot = self.plot + scale_color_manual(values=colors)
+        
+        # 处理split_by参数
+        if split_by is not None:
+            if isinstance(split_by, str):
+                # 单个变量使用facet_wrap
+                self.plot = self.plot + facet_wrap(f"~{split_by}")
+            elif isinstance(split_by, (list, tuple)) and len(split_by) == 2:
+                # 两个变量使用facet_grid
+                self.plot = self.plot + facet_grid(f"{split_by[0]}~{split_by[1]}")
+            else:
+                raise ValueError("split_by must be either a string or a list/tuple of two strings")
                 
         return self
     

@@ -69,6 +69,7 @@ todo list
 - Fluent, chainable interface using pandas DataFrame extension
 - Publication-ready plots with Nature Publishing Group (NPG) color palette by default
 - Comprehensive set of plot types and statistical visualizations
+- Flexible faceting with `split_by` parameter for both single and multi-variable splits
 - Statistical annotations (p-values, correlations, etc.)
 - Multiple scientific journal color palettes (NPG, AAAS, NEJM, etc.)
 - Easy customization of colors, labels, and themes
@@ -157,6 +158,33 @@ iris = sns.load_dataset("iris")
   ```
 
 ## Examples
+
+### Basic Plots
+
+```python
+import pandas as pd
+import seaborn as sns
+from tidyplots import TidyPlot
+
+# Load sample data
+iris = sns.load_dataset("iris")
+
+# Simple scatter plot with groups
+(iris.tidyplot(x='sepal_length', y='sepal_width', color='species')
+    .add_scatter()
+    .show())
+
+# Faceted plot using single variable
+(iris.tidyplot(x='sepal_length', y='sepal_width', color='species', split_by='species')
+    .add_scatter()
+    .show())
+
+# Grid faceted plot using two variables
+(iris.tidyplot(x='sepal_length', y='sepal_width', color='species', 
+              split_by=['species', 'petal_size_category'])  # petal_size_category is an example
+    .add_scatter()
+    .show())
+```
 
 ### Scatter Plot
 
