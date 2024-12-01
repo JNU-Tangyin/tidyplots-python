@@ -551,33 +551,33 @@ for date in dates:
 ts_data = pd.DataFrame(data)
 
 print("\nCreating statistical ribbon plots...")
-ts_data.tidyplot(x='date', y='value')
+    ts_data.tidyplot(x='date', y='value')
     .add_line(size=1, alpha=.1, color='grey')
     .add_sem_ribbon(alpha=0.1, color='navy', size=2)
     .adjust_labels(title='Time Series with SEM Ribbon',
                 x='Date', y='Value')
-    .save('figures/7.6.1_sem_ribbon.png'))
+    .save('figures/7.6.1_sem_ribbon.png')
 
-(ts_data.tidyplot(x='date', y='value')
- .add_line(size=1, alpha=1)
- .add_range_ribbon(alpha=0.2)
- .adjust_labels(title='Time Series with Range Ribbon',
-               x='Date', y='Value')
- .save('figures/7.6.2_range_ribbon.png'))
+    (ts_data.tidyplot(x='date', y='value')
+     .add_line(size=1, alpha=1)
+     .add_range_ribbon(alpha=0.2)
+     .adjust_labels(title='Time Series with Range Ribbon',
+                   x='Date', y='Value')
+     .save('figures/7.6.2_range_ribbon.png'))
 
-(ts_data.tidyplot(x='date', y='value')
- .add_line(size=1, alpha=1)
- .add_sd_ribbon(alpha=0.2)
- .adjust_labels(title='Time Series with SD Ribbon',
-               x='Date', y='Value')
- .save('figures/7.6.3_sd_ribbon.png'))
+    (ts_data.tidyplot(x='date', y='value')
+     .add_line(size=1, alpha=1)
+     .add_sd_ribbon(alpha=0.2)
+     .adjust_labels(title='Time Series with SD Ribbon',
+                   x='Date', y='Value')
+     .save('figures/7.6.3_sd_ribbon.png'))
 
-(ts_data.tidyplot(x='date', y='value')
- .add_line(size=1, alpha=1)
- .add_ci95_ribbon(alpha=0.2)
- .adjust_labels(title='Time Series with 95% CI Ribbon',
-               x='Date', y='Value')
- .save('figures/7.6.4_ci95_ribbon.png'))
+    (ts_data.tidyplot(x='date', y='value')
+     .add_line(size=1, alpha=1)
+     .add_ci95_ribbon(alpha=0.2)
+     .adjust_labels(title='Time Series with 95% CI Ribbon',
+                   x='Date', y='Value')
+     .save('figures/7.6.4_ci95_ribbon.png'))
 
 # 7.7 Stacked Plots
 survival_data = titanic.groupby(['class', 'survived']).size().reset_index(name='count')
@@ -799,4 +799,45 @@ t_stat, p_val = stats.ttest_ind(group1, group2)
  .adjust_labels(title='P-value with Bracket')
  .save('figures/12.1_pvalue_bracket.png'))
 
+# Example 1: Iris Dataset with single variable faceting
+print("\nExample 1: Iris Dataset with facet_wrap")
+iris = sns.load_dataset("iris")
+(iris.tidyplot(x='sepal_length', y='sepal_width', color='species', split_by='species')
+    .add_scatter()
+    .adjust_labels(title='Iris Measurements by Species')
+    .save('figures/13.1_iris_facet_wrap.png'))
+
+# Example 2: Tips Dataset with two variable faceting
+print("\nExample 2: Tips Dataset with facet_grid")
+tips = sns.load_dataset("tips")
+(tips.tidyplot(x='total_bill', y='tip', color='time', split_by=['day', 'time'])
+    .add_scatter()
+    .adjust_labels(title='Tips by Day and Time')
+    .save('figures/13.2_tips_facet_grid.png'))
+
+# Example 3: Penguins Dataset with facet_wrap and violin plots
+print("\nExample 3: Penguins Dataset with facet_wrap and violin plots")
+penguins = sns.load_dataset("penguins")
+(penguins.tidyplot(x='species', y='body_mass_g', fill='sex', split_by='island')
+    .add_violin()
+    .adjust_labels(title='Penguin Body Mass by Island')
+    .save('figures/13.3_penguins_facet_wrap.png'))
+
+# Example 4: Diamonds Dataset with facet_grid and boxplots
+print("\nExample 4: Diamonds Dataset with facet_grid and boxplots")
+diamonds = sns.load_dataset("diamonds")
+# Create a smaller subset for better visualization
+diamonds_subset = diamonds.sample(n=1000, random_state=42)
+(diamonds_subset.tidyplot(x='cut', y='price', fill='color', split_by=['color', 'clarity'])
+    .add_boxplot()
+    .adjust_labels(title='Diamond Prices by Cut, Color, and Clarity')
+    .save('figures/13.4_diamonds_facet_grid.png'))
+
+# Example 5: Titanic Dataset with facet_wrap and bar plots
+print("\nExample 5: Titanic Dataset with facet_wrap and bar plots")
+titanic = sns.load_dataset("titanic")
+(titanic.tidyplot(x='class', fill='survived', split_by='sex')
+    .add_bar(position='dodge')
+    .adjust_labels(title='Titanic Survival by Class and Sex')
+    .save('figures/13.5_titanic_facet_wrap.png'))
 print("\nAll examples have been generated in the 'figures' directory.")
