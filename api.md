@@ -646,4 +646,89 @@ Add scatter points to the plot.
 
 #### add_line()
 Add line to the plot.
-{{ ... }}
+
+### Pie Charts
+
+#### add_pie()
+Create a pie chart using matplotlib.
+
+##### Parameters
+- `figsize` (tuple, optional): Figure size in inches (width, height). Default: (6, 6)
+- `dpi` (int, optional): Dots per inch for the figure. Default: 150
+- `**kwargs`: Additional arguments passed to matplotlib.pyplot.pie():
+  - `colors`: List of colors for pie slices
+  - `explode`: Tuple of floats to offset each slice
+  - `autopct`: String or function for percentage display (default: '%1.1f%%')
+  - `pctdistance`: Float for percentage label distance from center
+  - `labeldistance`: Float for label distance from center
+  - `shadow`: Bool to add shadow effect
+  - `startangle`: Int for starting angle in degrees (default: 90)
+  - `wedgeprops`: Dict of properties for pie wedges
+
+##### Returns
+- TidyPlot: Returns self for method chaining
+
+##### Examples
+
+###### Basic Pie Chart
+```python
+import pandas as pd
+import seaborn as sns
+from tidyplots import TidyPlot
+
+# Create a simple pie chart
+titanic = sns.load_dataset("titanic")
+survival_counts = titanic['survived'].value_counts().reset_index()
+survival_counts.columns = ['Status', 'Count']
+survival_counts['Status'] = survival_counts['Status'].map({0: 'Did Not Survive', 1: 'Survived'})
+(survival_counts.tidyplot(x='Status', y='Count')
+ .add_pie(colors=['#ff9999', '#66b3ff'])
+ .show())
+```
+
+###### Exploded Pie Chart with Shadow
+```python
+# Create pie chart with exploded slices and shadow effect
+class_counts = titanic['class'].value_counts().reset_index()
+class_counts.columns = ['Class', 'Count']
+(class_counts.tidyplot(x='Class', y='Count')
+ .add_pie(colors=['#ff9999', '#66b3ff', '#99ff99'],
+          explode=(0.1, 0, 0),  # Explode first slice
+          shadow=True)  # Add shadow effect
+ .show())
+```
+
+###### Custom Percentage Formatting
+```python
+# Show both percentages and counts
+tips = sns.load_dataset("tips")
+day_counts = tips['day'].value_counts().reset_index()
+day_counts.columns = ['Day', 'Count']
+(day_counts.tidyplot(x='Day', y='Count')
+ .add_pie(colors=['#ff9999', '#66b3ff', '#99ff99', '#ffcc99'],
+          autopct=lambda pct: f'{pct:.1f}%\n({int(pct/100.*sum(day_counts["Count"])):.0f})',
+          startangle=45)
+ .show())
+```
+
+###### Advanced Label Positioning
+```python
+# Adjust label positions and add white edges
+diamonds = sns.load_dataset("diamonds")
+cut_counts = diamonds['cut'].value_counts().reset_index()
+cut_counts.columns = ['Cut', 'Count']
+(cut_counts.tidyplot(x='Cut', y='Count')
+ .add_pie(colors=['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#ff99cc'],
+          pctdistance=0.85,  # Move percentage labels outward
+          labeldistance=1.1,  # Move labels outward
+          wedgeprops={'linewidth': 3, 'edgecolor': 'white'})  # Add white edges
+ .show())
+```
+
+##### Notes
+- The first column in the DataFrame is used as labels
+- The second column in the DataFrame is used as values
+- Default white edges are added if wedgeprops is not specified
+- The plot can be saved using the `save()` method
+- The plot can be displayed using the `show()` method
+- Pie charts do not support faceting with `split_by`. For faceted visualizations, consider using bar plots or other plot types.

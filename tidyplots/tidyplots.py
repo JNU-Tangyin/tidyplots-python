@@ -21,10 +21,12 @@ from plotnine import (
     # Guides
     guides, guide_legend, after_stat
 )
+from plotnine.geoms.geom import geom
 from typing import Optional, List, Union, Dict, Any
 from . import palettes
 from . import themes
 import scipy.stats as stats
+import matplotlib.pyplot as plt
 
 @pd.api.extensions.register_dataframe_accessor("tidyplot")
 class TidyPlot:
@@ -34,6 +36,8 @@ class TidyPlot:
         """Initialize TidyPlot with a pandas DataFrame."""
         self._obj = pandas_obj
         self.plot = None
+        self.fig = None
+        self.ax = None
         self.prism = themes.TidyPrism()
         self._default_theme = self.prism.theme_prism()  # 设置默认主题为 theme_prism
         self._default_palette = 'npg'  # 设置默认调色板为 npg
@@ -62,26 +66,17 @@ class TidyPlot:
         """
         
         # 构建映射字典，排除self和非映射参数
-        mapping_dict = {}
-        if x is not None:
-            mapping_dict['x'] = x
-        if y is not None:
-            mapping_dict['y'] = y
-        if color is not None:
-            mapping_dict['color'] = color
-        if fill is not None:
-            mapping_dict['fill'] = fill
-        if shape is not None:
-            mapping_dict['shape'] = shape
-        if size is not None:
-            mapping_dict['size'] = size
-        if linetype is not None:
-            mapping_dict['linetype'] = linetype
+        mapping_dict = {key: value for key, value in locals().items() 
+                       if key not in ['self', 'kwargs'] and value is not None}
         
+        # Remove split_by from mapping as it's not an aesthetic
+        if 'split_by' in mapping_dict:
+            del mapping_dict['split_by']
+
         self.plot = (ggplot(self._obj, aes(**mapping_dict)) +
-                    self._default_theme)  # 使用默认主题
+                    self._default_theme)  # Use default theme
         
-        # 应用默认调色板
+        # Apply default color palette
         colors = palettes.get_palette(self._default_palette)
         if 'y' not in mapping_dict:
             self.plot = self.plot + scale_fill_manual(values=colors)
@@ -89,13 +84,13 @@ class TidyPlot:
             if color is not None:
                 self.plot = self.plot + scale_color_manual(values=colors)
         
-        # 处理split_by参数
+        # Handle split_by parameter
         if split_by is not None:
             if isinstance(split_by, str):
-                # 单个变量使用facet_wrap
+                # Single variable uses facet_wrap
                 self.plot = self.plot + facet_wrap(f"~{split_by}")
             elif isinstance(split_by, (list, tuple)) and len(split_by) == 2:
-                # 两个变量使用facet_grid
+                # Two variables use facet_grid
                 self.plot = self.plot + facet_grid(f"{split_by[0]}~{split_by[1]}")
             else:
                 raise ValueError("split_by must be either a string or a list/tuple of two strings")
@@ -197,7 +192,7 @@ class TidyPlot:
         if test not in ['anova', 't-test']:
             raise ValueError("test must be 'anova' or 't-test'")
         
-        mapping = self.plot.mapping
+        mapping = self.plot.mapping._starting
         x = mapping['x']
         y = mapping['y']
         
@@ -367,11 +362,44 @@ class TidyPlot:
 
     def show(self):
         """Display the plot."""
-        return self.plot
+        # Draw the plot first if needed
+        if self.plot is not None:
+            self.plot.draw()
+            
+        # For matplotlib-based plots (pie charts)
+        if hasattr(self, 'fig') and self.fig is not None:
+            import matplotlib.pyplot as plt
+            plt.show()
+        # For plotnine-based plots
+        elif hasattr(self, 'plot') and self.plot is not None:
+            print(self.plot)
+        else:
+            raise ValueError("No plot to show. Create a plot first using one of the add_* methods.")
+            
+        return self
     
     def save(self, filename: str, **kwargs):
-        """Save the plot to a file."""
-        self.plot.save(filename, **kwargs)
+        """Save the plot to a file.
+        
+        Args:
+            filename (str): Path to save the plot to
+            **kwargs: Additional arguments passed to plt.savefig() or plotnine.save()
+        """
+        # Draw the plot first if needed
+        if self.plot is not None:
+            self.plot.draw()
+            
+        # For matplotlib-based plots (pie charts)
+        if hasattr(self, 'fig') and self.fig is not None:
+            self.fig.savefig(filename, **kwargs)
+            import matplotlib.pyplot as plt
+            plt.close(self.fig)
+        # For plotnine-based plots
+        elif hasattr(self, 'plot') and self.plot is not None:
+            self.plot.save(filename, **kwargs)
+        else:
+            raise ValueError("No plot to save. Create a plot first using one of the add_* methods.")
+        
         return self
 
     def add_sum_bar(self, width: float = 0.7, alpha: float = 0.7):
@@ -503,25 +531,90 @@ class TidyPlot:
         self.plot = self.plot + geom_area(position='fill', alpha=alpha, **kwargs)
         return self
 
-    def add_pie(self, **kwargs):
-        """Add pie chart."""
-        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=1, **kwargs)
+    def add_pie(self, mapping=None, width: float = 0.9, alpha: float = 0.7, **kwargs):
+        """Add pie chart using our custom geom_pie.
+        
+        Args:
+            mapping (dict): Column mapping for aesthetics (e.g. {'x': 'category', 'y': 'value'})
+            width (float): Width of the pie slices (default: 0.9)
+            alpha (float): Opacity of the slices (default: 0.7)
+            **kwargs: Additional arguments passed to geom_pie(), such as:
+                fill: List of colors for pie slices
+                color: Edge color for pie slices
+                size: Edge width
+        
+        Returns:
+            self: Returns self for method chaining
+        """
+        # Create mapping if not provided
+        if mapping is None:
+            mapping = {}
+            
+        # Initialize plot if needed
+        if self.plot is None:
+            self.plot = ggplot(self._obj) + self._default_theme
+        
+        # Add pie chart
+        self.plot = self.plot + geom_pie(
+            mapping=aes(**mapping),
+            width=width,
+            alpha=alpha,
+            inner_radius=0.0,
+            **kwargs
+        )
+        
+        # Add pie-specific theme elements while preserving default theme
+        pie_theme = theme(
+            axis_text=element_blank(),
+            axis_ticks=element_blank(),
+            axis_title=element_blank(),
+            axis_line=element_blank(),
+            panel_grid=element_blank()
+        )
+        self.plot = self.plot + pie_theme
+        
         return self
 
-    def add_donut(self, inner_radius: float = 0.5):
-        """Add donut chart."""
-        self.plot = (self.plot + 
-                    geom_bar(stat='identity', position='fill', width=1) +
-                    theme(aspect_ratio=1) +
-                    theme(panel_grid=element_blank()) +
-                    theme(axis_text=element_blank()) +
-                    theme(axis_ticks=element_blank()))
-        return self
-
-    def add_data_labels_repel(self, size: float = 8):
-        """Add data labels with repulsion to avoid overlapping."""
-        value_label = self._obj[self._obj.columns[0]].astype(str)
-        self.plot = self.plot + geom_text(aes(label=value_label), size=size, va='bottom', nudge_y=0.05)
+    def add_donut(self, mapping=None, inner_radius: float = 0.5, width: float = 0.9, alpha: float = 0.7, **kwargs):
+        """Add donut chart using our custom geom_pie.
+        
+        Args:
+            mapping (dict): Column mapping for aesthetics (e.g. {'x': 'category', 'y': 'value'})
+            inner_radius (float): Inner radius of the donut (default: 0.5)
+            width (float): Width of the slices (default: 0.9)
+            alpha (float): Opacity of the slices (default: 0.7)
+            **kwargs: Additional arguments passed to geom_pie()
+        
+        Returns:
+            self: Returns self for method chaining
+        """
+        # Create mapping if not provided
+        if mapping is None:
+            mapping = {}
+            
+        # Initialize plot if needed
+        if self.plot is None:
+            self.plot = ggplot(self._obj) + self._default_theme
+        
+        # Add donut chart
+        self.plot = self.plot + geom_pie(
+            mapping=aes(**mapping),
+            width=width,
+            alpha=alpha,
+            inner_radius=inner_radius,
+            **kwargs
+        )
+        
+        # Add donut-specific theme elements while preserving default theme
+        donut_theme = theme(
+            axis_text=element_blank(),
+            axis_ticks=element_blank(),
+            axis_title=element_blank(),
+            axis_line=element_blank(),
+            panel_grid=element_blank()
+        )
+        self.plot = self.plot + donut_theme
+        
         return self
 
     def adjust_title(self, text: str, size: float = 14):
@@ -661,8 +754,8 @@ class TidyPlot:
             else:
                 return self
         return self.reorder_color_labels(order)
-    
-    def add_pvalue(p: float, x1: float, x2: float, y: float, height: float = 0.02,
+
+    def add_pvalue(self,p: float, x1: float, x2: float, y: float, height: float = 0.02,
                   format: str = "stars") -> List[Any]:
         """Add p-value annotation with bracket.
         
@@ -702,3 +795,154 @@ class TidyPlot:
             geom_segment(aes(x=x1, xend=x2, y=y+height, yend=y+height)),
             annotate("text", x=(x1+x2)/2, y=y+height, label=text, size=8)
         ]
+
+class geom_pie(geom):
+    """
+    A custom geometry for pie charts, extending plotnine's geom class.
+    
+    This geometry creates pie charts by using matplotlib's polar projection.
+    It supports both regular pie charts and donut charts through the inner_radius parameter.
+    
+    Parameters
+    ----------
+    inner_radius : float, default 0.0
+        Inner radius for donut charts (0.0 creates a pie chart)
+    start_angle : float, default 90
+        Starting angle in degrees (90 starts at top)
+    sort : bool, default False
+        Whether to sort slices by value
+    show_labels : bool, default True
+        Whether to show value labels
+    label_type : str, default 'percent'
+        Type of labels to show: 'percent', 'value', 'both', or a custom format string
+    label_radius : float, default 1.1
+        Radius multiplier for label position
+    label_size : float, default 10
+        Font size for labels
+    explode : float or list, default None
+        Distance to offset slices from center
+    """
+    DEFAULT_AES = {'alpha': 1, 'fill': None, 'color': None, 'size': 1}
+    REQUIRED_AES = {'x', 'y'}
+    DEFAULT_PARAMS = {
+        'stat': 'identity',
+        'position': 'stack',
+        'na_rm': False,
+        'width': 0.9,
+        'inner_radius': 0.0,
+        'size': 1,
+        'start_angle': 90,
+        'sort': False,
+        'show_labels': True,
+        'label_type': 'percent',
+        'label_radius': 1.1,
+        'label_size': 10,
+        'explode': None
+    }
+
+    def setup_data(self, data):
+        """Prepare the data for plotting."""
+        # Ensure we have numeric values for y
+        if 'y' not in data:
+            data['y'] = 1
+            
+        # Sort data by values if requested
+        if self.params.get('sort', False):
+            data = data.sort_values('y', ascending=False).reset_index(drop=True)
+            
+        return data
+
+    @staticmethod
+    def draw_group(data, panel_params, coord, ax, **params):
+        """Draw the pie chart."""
+        if not isinstance(ax, plt.Axes):
+            # Create a new figure with polar projection
+            fig = plt.figure(figsize=(8, 8))
+            ax = fig.add_subplot(111, projection='polar')
+            
+            # Store figure reference for saving
+            if hasattr(coord, 'plot') and hasattr(coord.plot, 'tidyplot'):
+                coord.plot.tidyplot.fig = fig
+        
+        # Extract data
+        values = data['y'].values
+        labels = data['x'].values if 'x' in data else None
+        
+        # Calculate angles for each slice
+        total = values.sum()
+        angles = values / total * 2 * np.pi
+        
+        # Get start angle in radians
+        start_angle = np.radians(params.get('start_angle', 90))
+        
+        # Get colors from params or use default colormap
+        if 'fill' in params and isinstance(params['fill'], list):
+            colors = params['fill']
+        else:
+            colors = [plt.cm.Set3(i / len(values)) for i in range(len(values))]
+        
+        # Get explode values
+        explode = params.get('explode', None)
+        if explode is not None:
+            if isinstance(explode, (int, float)):
+                explode = [explode] * len(values)
+            elif len(explode) != len(values):
+                explode = None
+        
+        # Plot each slice
+        patches = []
+        for i, angle in enumerate(angles):
+            # Calculate center point (for exploded slices)
+            if explode is not None:
+                midpoint_angle = start_angle - angle/2
+                center = (explode[i] * np.cos(midpoint_angle), 
+                         explode[i] * np.sin(midpoint_angle))
+            else:
+                center = (0, 0)
+            
+            # Create wedge
+            wedge = plt.matplotlib.patches.Wedge(
+                center=center,
+                r=1.0,
+                theta1=np.degrees(start_angle - angle),
+                theta2=np.degrees(start_angle),
+                width=None if params['inner_radius'] == 0 else 1.0 - params['inner_radius'],
+                facecolor=colors[i % len(colors)],
+                alpha=params.get('alpha', 1.0),
+                edgecolor=params.get('color', 'white'),
+                linewidth=params.get('size', 1)
+            )
+            ax.add_patch(wedge)
+            patches.append(wedge)
+            
+            # Add label if requested
+            if params.get('show_labels', True):
+                midpoint_angle = start_angle - angle/2
+                label_radius = params.get('label_radius', 1.1)
+                label_size = params.get('label_size', 10)
+                
+                # Format label based on type
+                label_type = params.get('label_type', 'percent')
+                if label_type == 'percent':
+                    label = f'{values[i]/total*100:.1f}%'
+                elif label_type == 'value':
+                    label = f'{values[i]}'
+                elif label_type == 'both':
+                    label = f'{values[i]} ({values[i]/total*100:.1f}%)'
+                else:
+                    # Treat as format string
+                    label = label_type.format(values[i])
+                
+                # Add text
+                ax.text(midpoint_angle, label_radius, label,
+                       ha='center', va='center', size=label_size)
+            
+            # Update start angle for next slice
+            start_angle -= angle
+        
+        # Set axis limits and remove ticks
+        ax.set_ylim(0, 1)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        
+        return patches
