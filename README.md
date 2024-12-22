@@ -448,8 +448,7 @@ penguins = sns.load_dataset("penguins")
 <div align="center">
 <table>
 <tr>
-<td><img src="figures/13.1_iris_facet_wrap.png" width="400"/></td>
-<td><img src="figures/13.3_penguins_facet_wrap.png" width="400"/></td>
+<td><img src="figures/penguins_violin.png" width="400"/></td>
 </tr>
 </table>
 </div>
@@ -479,7 +478,6 @@ diamonds_subset = diamonds.sample(n=1000, random_state=42)
 <table>
 <tr>
 <td><img src="figures/13.2_tips_facet_grid.png" width="400"/></td>
-<td><img src="figures/13.4_diamonds_facet_grid.png" width="400"/></td>
 </tr>
 </table>
 </div>
@@ -498,7 +496,7 @@ survival_data = titanic.groupby(['class', 'sex', 'survived']).size().reset_index
 ```
 
 <div align="center">
-<img src="figures/13.5_titanic_facet_wrap.png" width="400"/>
+<img src="figures/titanic_survival.png" width="400"/>
 </div>
 
 ## Color Palettes
