@@ -178,9 +178,8 @@ print("\nCreating advanced plots...")
 
 # 3.3 Dot Plot
 (tips.tidyplot(x='total_bill', fill='time')
- .add_dotplot()
- .adjust_labels(title='Dot Plot: Bill Distribution',
-               x='Total Bill', y='Count')
+ .add_dotplot(binwidth=0.2, stackdir='down', binaxis='x')
+ .adjust_labels(title='Dot: tips by total bill', x='total bill', y='Count')
  .save('figures/3.3_dotplot.png'))
 
 # 3.4 Step Plot

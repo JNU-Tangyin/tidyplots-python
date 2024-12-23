@@ -3,45 +3,93 @@
 import pandas as pd
 import numpy as np
 from plotnine import (
-    ggplot, aes, labs, annotate,
+    # Core components
+    ggplot, aes, labs,
     # Geometries
     geom_point, geom_line, geom_bar, geom_boxplot, geom_violin, 
     geom_density, geom_step, geom_dotplot, geom_text, geom_jitter,
-    geom_smooth, geom_quantile, geom_rug, geom_ribbon, geom_area,
-    geom_hline, geom_vline, geom_errorbar,
-    # Stats
-    stat_density_2d, stat_count, stat_bin_2d, stat_summary, stat_smooth,
+    geom_histogram, geom_col, geom_area, geom_tile, geom_rect, geom_segment,
+    geom_smooth,
+    geom_errorbar,
+    # Statistics
+    stat_summary,
     # Positions
     position_jitterdodge, position_stack, position_fill, position_dodge, position_jitter,
     # Coordinates and scales
-    coord_flip, scale_x_continuous, scale_y_continuous, scale_x_discrete,
-    scale_color_manual, scale_fill_manual,
+    scale_x_continuous, scale_y_continuous, scale_x_discrete,
+    scale_color_manual, scale_fill_manual, scale_fill_gradientn,
     # Themes and elements
-    theme, theme_minimal, element_text, element_blank, facet_wrap, facet_grid,
+    theme, theme_minimal, element_text, element_blank, element_line, element_rect,
+    # Facets
+    facet_wrap, facet_grid,
     # Guides
     guides, guide_legend, after_stat
 )
-from plotnine.geoms.geom import geom
+from plotnine.layer import Layers, layer
+from plotnine.positions.position import position
+from plotnine.themes.theme import theme
+from plotnine.themes.elements import element_blank
+from plotnine.coords import coord_flip
 from typing import Optional, List, Union, Dict, Any
 from . import palettes
 from . import themes
 import scipy.stats as stats
+import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import os
+import matplotlib.path as mpath
+from .plotnine import geom_pie, geom_rose
 
 @pd.api.extensions.register_dataframe_accessor("tidyplot")
+class TidyPlotAccessor:
+    """Accessor for creating TidyPlots from pandas DataFrames."""
+    
+    def __init__(self, pandas_obj):
+        """Initialize the accessor with a pandas DataFrame."""
+        self._obj = pandas_obj
+        
+    def __call__(self, x=None, y=None, fill=None, color=None, size=None, alpha=None):
+        """Create a TidyPlot from the DataFrame with aesthetic mappings."""
+        return TidyPlot(self._obj, x=x, y=y, fill=fill, color=color, size=size, alpha=alpha)
+
 class TidyPlot:
     """A fluent interface for creating publication-ready plots."""
     
-    def __init__(self, pandas_obj):
-        """Initialize TidyPlot with a pandas DataFrame."""
-        self._obj = pandas_obj
-        self.plot = None
+    def __init__(self, data, x=None, y=None, fill=None, color=None, size=None, alpha=None):
+        """Initialize TidyPlot with data and aesthetic mappings."""
+        self._obj = data
+        self._x = x
+        self._y = y
+        self._fill = fill
+        self._color = color
+        self._size = size
+        self._alpha = alpha
+        self._colors = None
         self.fig = None
         self.ax = None
         self.prism = themes.TidyPrism()
         self._default_theme = self.prism.theme_prism()  # 设置默认主题为 theme_prism
         self._default_palette = 'npg'  # 设置默认调色板为 npg
-    
+        
+        # Initialize the plot with basic aesthetics
+        mapping_dict = {}
+        if x is not None:
+            mapping_dict['x'] = x
+        if y is not None:
+            mapping_dict['y'] = y
+        if fill is not None:
+            mapping_dict['fill'] = fill
+        if color is not None:
+            mapping_dict['color'] = color
+        if size is not None:
+            mapping_dict['size'] = size
+        if alpha is not None:
+            mapping_dict['alpha'] = alpha
+            
+        self.plot = (ggplot(self._obj, aes(**mapping_dict)) +
+                    self._default_theme)  # Use default theme
+        
     def __call__(self, x: str, y: str = None, 
                 color: Optional[str] = None, 
                 fill: Optional[str] = None,
@@ -109,7 +157,7 @@ class TidyPlot:
     
     def add_smooth(self,**kwargs): 
         """Add smoothed conditional means."""
-        self.plot = self.plot + stat_smooth(**kwargs)
+        self.plot = self.plot + geom_smooth(**kwargs)
         return self
     
     def add_bar(self,stat:str ='identity', **kwargs): 
@@ -134,7 +182,7 @@ class TidyPlot:
     
     def add_hex(self, bins: int = 20):
         """Add hexagonal binning."""
-        self.plot = self.plot + stat_bin_2d(bins=bins)
+        self.plot = self.plot + geom_hex(bins=bins)
         return self
     
     def add_errorbar(self, ymin: str, ymax: str, alpha: float = 0.8, width: float = 0.2):
@@ -236,7 +284,7 @@ class TidyPlot:
 
     def add_regression_line(self, ci: bool = True, alpha: float = 0.2):
         """Add regression line with optional confidence interval."""
-        self.plot = self.plot + stat_smooth(method='lm', se=ci, alpha=alpha)
+        self.plot = self.plot + geom_smooth(method='lm', se=ci, alpha=alpha)
         return self
 
     def add_quantiles(self, quantiles: List[float] = [0.25, 0.5, 0.75], alpha: float = 0.5, color: str = 'red'):
@@ -329,18 +377,24 @@ class TidyPlot:
         self.plot = self.plot + labs(title=title, x=x, y=y)
         return self
     
-    def adjust_colors(self, palette: Union[str, List[str]] = 'npg'):
-        """Change color palette."""
-        self._default_palette = palette  # Update default palette
-        if isinstance(palette, str):
-            colors = palettes.get_palette(palette)
-        else:
-            colors = palette
-        if 'y' not in self.plot.mapping:
-            self.plot = self.plot + scale_fill_manual(values=colors)
-        else:
-            if 'color' in self.plot.mapping:
-                self.plot = self.plot + scale_color_manual(values=colors)
+    def adjust_colors(self, palette='jama', type='sequential'):
+        """
+        Adjust color palette for the plot.
+        
+        Args:
+            palette (str): Name of the palette to use ('jama', 'nejm', 'lancet', etc.)
+            type (str): Type of palette ('sequential', 'diverging', 'qualitative')
+            
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        colors = palettes.get_palette(palette, type=type)
+        
+        # Add new scales, they will override any existing ones
+        if 'fill' in self.plot.mapping:
+            self.plot = self.plot + scale_fill_gradientn(colors=colors)
+        if 'color' in self.plot.mapping:
+            self.plot = self.plot + scale_color_gradientn(colors=colors)
         return self
     
     def adjust_axis_text_angle(self, angle: float = 45):
@@ -372,34 +426,26 @@ class TidyPlot:
             plt.show()
         # For plotnine-based plots
         elif hasattr(self, 'plot') and self.plot is not None:
-            print(self.plot)
+            self.plot.show()
         else:
             raise ValueError("No plot to show. Create a plot first using one of the add_* methods.")
             
         return self
     
-    def save(self, filename: str, **kwargs):
-        """Save the plot to a file.
+    def save(self, filepath):
+        """Save the plot to a file."""
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         
-        Args:
-            filename (str): Path to save the plot to
-            **kwargs: Additional arguments passed to plt.savefig() or plotnine.save()
-        """
-        # Draw the plot first if needed
-        if self.plot is not None:
-            self.plot.draw()
-            
-        # For matplotlib-based plots (pie charts)
-        if hasattr(self, 'fig') and self.fig is not None:
-            self.fig.savefig(filename, **kwargs)
-            import matplotlib.pyplot as plt
-            plt.close(self.fig)
-        # For plotnine-based plots
-        elif hasattr(self, 'plot') and self.plot is not None:
-            self.plot.save(filename, **kwargs)
-        else:
-            raise ValueError("No plot to save. Create a plot first using one of the add_* methods.")
-        
+        if self.fig:  # For matplotlib-based plots (pie charts)
+            self.fig.savefig(filepath, bbox_inches='tight')
+        elif self.plot:  # For plotnine-based plots
+            # Draw the plot
+            fig = self.plot.draw()
+            # Save the figure
+            fig.savefig(filepath, bbox_inches='tight')
+            # Close the figure to free memory
+            plt.close(fig)
         return self
 
     def add_sum_bar(self, width: float = 0.7, alpha: float = 0.7):
@@ -432,11 +478,6 @@ class TidyPlot:
     def add_sum_area(self, alpha: float = 0.7):
         """Add areas showing sums."""
         self.plot = self.plot + stat_summary(fun_y=np.sum, geom='area', alpha=alpha)
-        return self
-
-    def add_heatmap(self, alpha: float = 0.7):
-        """Add heatmap visualization."""
-        self.plot = self.plot + geom_tile(alpha=alpha)
         return self
 
     def add_median_bar(self, width: float = 0.7, alpha: float = 0.7):
@@ -531,97 +572,63 @@ class TidyPlot:
         self.plot = self.plot + geom_area(position='fill', alpha=alpha, **kwargs)
         return self
 
-    def add_pie(self, mapping=None, width: float = 0.9, alpha: float = 0.7, **kwargs):
-        """Add pie chart using our custom geom_pie.
+    def add_pie(self, **kwargs):
+        """
+        Add a pie chart layer to the plot.
         
         Args:
-            mapping (dict): Column mapping for aesthetics (e.g. {'x': 'category', 'y': 'value'})
-            width (float): Width of the pie slices (default: 0.9)
-            alpha (float): Opacity of the slices (default: 0.7)
-            **kwargs: Additional arguments passed to geom_pie(), such as:
-                fill: List of colors for pie slices
-                color: Edge color for pie slices
-                size: Edge width
-        
-        Returns:
-            self: Returns self for method chaining
-        """
-        # Create mapping if not provided
-        if mapping is None:
-            mapping = {}
+            show_labels (bool): Whether to show labels
+            label_type (str): Type of labels ('value', 'percent', 'both')
+            label_radius (float): Position of labels as fraction of radius
+            label_size (float): Font size for labels
+            sort (bool): Whether to sort slices by value
+            start_angle (float): Starting angle in degrees
+            inner_radius (float): Inner radius for donut chart
+            **kwargs: Additional arguments passed to geom_pie
             
-        # Initialize plot if needed
-        if self.plot is None:
-            self.plot = ggplot(self._obj) + self._default_theme
-        
-        # Add pie chart
-        self.plot = self.plot + geom_pie(
-            mapping=aes(**mapping),
-            width=width,
-            alpha=alpha,
-            inner_radius=0.0,
-            **kwargs
-        )
-        
-        # Add pie-specific theme elements while preserving default theme
-        pie_theme = theme(
-            axis_text=element_blank(),
-            axis_ticks=element_blank(),
-            axis_title=element_blank(),
-            axis_line=element_blank(),
-            panel_grid=element_blank()
-        )
-        self.plot = self.plot + pie_theme
-        
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        self.plot = self.plot + geom_pie(**kwargs)
         return self
 
-    def add_donut(self, mapping=None, inner_radius: float = 0.5, width: float = 0.9, alpha: float = 0.7, **kwargs):
-        """Add donut chart using our custom geom_pie.
+    def add_donut(self, inner_radius=0.6, **kwargs):
+        """
+        Add a donut chart layer to the plot.
         
         Args:
-            mapping (dict): Column mapping for aesthetics (e.g. {'x': 'category', 'y': 'value'})
-            inner_radius (float): Inner radius of the donut (default: 0.5)
-            width (float): Width of the slices (default: 0.9)
-            alpha (float): Opacity of the slices (default: 0.7)
-            **kwargs: Additional arguments passed to geom_pie()
-        
-        Returns:
-            self: Returns self for method chaining
-        """
-        # Create mapping if not provided
-        if mapping is None:
-            mapping = {}
+            inner_radius (float): Inner radius as fraction of outer radius
+            **kwargs: Additional arguments passed to add_pie
             
-        # Initialize plot if needed
-        if self.plot is None:
-            self.plot = ggplot(self._obj) + self._default_theme
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        return self.add_pie(inner_radius=inner_radius, **kwargs)
+
+    def add_rose(self, **kwargs):
+        """
+        Add a Nightingale Rose Chart layer to the plot.
         
-        # Add donut chart
-        self.plot = self.plot + geom_pie(
-            mapping=aes(**mapping),
-            width=width,
-            alpha=alpha,
-            inner_radius=inner_radius,
-            **kwargs
-        )
-        
-        # Add donut-specific theme elements while preserving default theme
-        donut_theme = theme(
-            axis_text=element_blank(),
-            axis_ticks=element_blank(),
-            axis_title=element_blank(),
-            axis_line=element_blank(),
-            panel_grid=element_blank()
-        )
-        self.plot = self.plot + donut_theme
-        
+        Args:
+            show_labels (bool): Whether to show labels
+            label_type (str): Type of labels ('value', 'percent', 'both')
+            label_radius (float): Position of labels as fraction of radius
+            label_size (float): Font size for labels
+            sort (bool): Whether to sort slices by value
+            start_angle (float): Starting angle in degrees
+            **kwargs: Additional arguments passed to geom_rose
+            
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        self.plot = self.plot + geom_rose(**kwargs)
         return self
 
     def adjust_title(self, text: str, size: float = 14):
         """Modify plot title."""
         self.plot = self.plot + theme(plot_title=element_text(size=size)) + labs(title=text)
         return self
-
+    
     def adjust_x_axis_title(self, text: str, size: float = 11):
         """Modify x axis title."""
         self.plot = self.plot + theme(axis_title_x=element_text(size=size)) + labs(x=text)
@@ -796,153 +803,332 @@ class TidyPlot:
             annotate("text", x=(x1+x2)/2, y=y+height, label=text, size=8)
         ]
 
-class geom_pie(geom):
-    """
-    A custom geometry for pie charts, extending plotnine's geom class.
-    
-    This geometry creates pie charts by using matplotlib's polar projection.
-    It supports both regular pie charts and donut charts through the inner_radius parameter.
-    
-    Parameters
-    ----------
-    inner_radius : float, default 0.0
-        Inner radius for donut charts (0.0 creates a pie chart)
-    start_angle : float, default 90
-        Starting angle in degrees (90 starts at top)
-    sort : bool, default False
-        Whether to sort slices by value
-    show_labels : bool, default True
-        Whether to show value labels
-    label_type : str, default 'percent'
-        Type of labels to show: 'percent', 'value', 'both', or a custom format string
-    label_radius : float, default 1.1
-        Radius multiplier for label position
-    label_size : float, default 10
-        Font size for labels
-    explode : float or list, default None
-        Distance to offset slices from center
-    """
-    DEFAULT_AES = {'alpha': 1, 'fill': None, 'color': None, 'size': 1}
-    REQUIRED_AES = {'x', 'y'}
-    DEFAULT_PARAMS = {
-        'stat': 'identity',
-        'position': 'stack',
-        'na_rm': False,
-        'width': 0.9,
-        'inner_radius': 0.0,
-        'size': 1,
-        'start_angle': 90,
-        'sort': False,
-        'show_labels': True,
-        'label_type': 'percent',
-        'label_radius': 1.1,
-        'label_size': 10,
-        'explode': None
-    }
-
-    def setup_data(self, data):
-        """Prepare the data for plotting."""
-        # Ensure we have numeric values for y
-        if 'y' not in data:
-            data['y'] = 1
+    def add_heatmap(self, show_values=False, value_format='{:.2f}', alpha=1):
+        """
+        Add a heatmap visualization to the plot.
+        
+        Args:
+            show_values (bool): Whether to show values in each cell
+            value_format (str): Format string for values (e.g., '{:.2f}' for 2 decimal places)
+            alpha (float): Opacity of the heatmap cells
             
-        # Sort data by values if requested
-        if self.params.get('sort', False):
-            data = data.sort_values('y', ascending=False).reset_index(drop=True)
-            
-        return data
-
-    @staticmethod
-    def draw_group(data, panel_params, coord, ax, **params):
-        """Draw the pie chart."""
-        if not isinstance(ax, plt.Axes):
-            # Create a new figure with polar projection
-            fig = plt.figure(figsize=(8, 8))
-            ax = fig.add_subplot(111, projection='polar')
-            
-            # Store figure reference for saving
-            if hasattr(coord, 'plot') and hasattr(coord.plot, 'tidyplot'):
-                coord.plot.tidyplot.fig = fig
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        # Add heatmap tiles
+        self.plot = self.plot + geom_tile(alpha=alpha)
         
-        # Extract data
-        values = data['y'].values
-        labels = data['x'].values if 'x' in data else None
+        # Apply default palette if no palette has been set and no fill scale exists
+        if 'fill' in self.plot.mapping:
+            has_fill_scale = any(isinstance(layer, scale_fill_gradientn) for layer in self.plot.layers)
+            has_fill_manual = any(isinstance(layer, scale_fill_manual) for layer in self.plot.layers)
+            if not (has_fill_scale or has_fill_manual):
+                self.adjust_colors(palette=self._default_palette)
         
-        # Calculate angles for each slice
-        total = values.sum()
-        angles = values / total * 2 * np.pi
-        
-        # Get start angle in radians
-        start_angle = np.radians(params.get('start_angle', 90))
-        
-        # Get colors from params or use default colormap
-        if 'fill' in params and isinstance(params['fill'], list):
-            colors = params['fill']
-        else:
-            colors = [plt.cm.Set3(i / len(values)) for i in range(len(values))]
-        
-        # Get explode values
-        explode = params.get('explode', None)
-        if explode is not None:
-            if isinstance(explode, (int, float)):
-                explode = [explode] * len(values)
-            elif len(explode) != len(values):
-                explode = None
-        
-        # Plot each slice
-        patches = []
-        for i, angle in enumerate(angles):
-            # Calculate center point (for exploded slices)
-            if explode is not None:
-                midpoint_angle = start_angle - angle/2
-                center = (explode[i] * np.cos(midpoint_angle), 
-                         explode[i] * np.sin(midpoint_angle))
-            else:
-                center = (0, 0)
-            
-            # Create wedge
-            wedge = plt.matplotlib.patches.Wedge(
-                center=center,
-                r=1.0,
-                theta1=np.degrees(start_angle - angle),
-                theta2=np.degrees(start_angle),
-                width=None if params['inner_radius'] == 0 else 1.0 - params['inner_radius'],
-                facecolor=colors[i % len(colors)],
-                alpha=params.get('alpha', 1.0),
-                edgecolor=params.get('color', 'white'),
-                linewidth=params.get('size', 1)
+        # Add value labels if requested
+        if show_values:
+            self.plot = self.plot + geom_text(
+                aes(label='value'),  # Use the value column as the label
+                format_string=value_format,
+                size=8
             )
-            ax.add_patch(wedge)
-            patches.append(wedge)
-            
-            # Add label if requested
-            if params.get('show_labels', True):
-                midpoint_angle = start_angle - angle/2
-                label_radius = params.get('label_radius', 1.1)
-                label_size = params.get('label_size', 10)
-                
-                # Format label based on type
-                label_type = params.get('label_type', 'percent')
-                if label_type == 'percent':
-                    label = f'{values[i]/total*100:.1f}%'
-                elif label_type == 'value':
-                    label = f'{values[i]}'
-                elif label_type == 'both':
-                    label = f'{values[i]} ({values[i]/total*100:.1f}%)'
-                else:
-                    # Treat as format string
-                    label = label_type.format(values[i])
-                
-                # Add text
-                ax.text(midpoint_angle, label_radius, label,
-                       ha='center', va='center', size=label_size)
-            
-            # Update start angle for next slice
-            start_angle -= angle
         
-        # Set axis limits and remove ticks
-        ax.set_ylim(0, 1)
-        ax.set_xticks([])
-        ax.set_yticks([])
+        # Remove axis elements
+        self.plot = self.plot + theme(
+            axis_title=element_blank(),
+            axis_text=element_blank(),
+            axis_ticks=element_blank(),
+            axis_line=element_blank(),
+            panel_grid_major=element_blank(),
+            panel_grid_minor=element_blank()
+        )
         
-        return patches
+        return self
+
+    def add_curve_fit(self):
+        """Add fitted curve."""
+        self.plot = self.plot + stat_smooth(method='loess', se=False)
+        return self
+
+    def add_sem_ribbon(self, alpha: float = 0.2, color: str = 'grey', **kwargs):
+        """Add ribbon showing standard error of mean."""
+        self.plot = self.plot + stat_smooth(method='loess', se=True, alpha=alpha, color=color, **kwargs)
+        return self
+
+    def add_range_ribbon(self, alpha: float = 0.2, color='grey', **kwargs):
+        """Add ribbon showing range."""
+        def range_fun(x):
+            return pd.DataFrame({
+                'y': [np.mean(x)],
+                'ymin': [np.min(x)],
+                'ymax': [np.max(x)]
+            })
+        self.plot = self.plot + stat_summary(fun_data=range_fun, geom='ribbon', alpha=alpha, color=color, **kwargs)
+        return self
+
+    def add_sd_ribbon(self, alpha: float = 0.2, color: str = 'grey', **kwargs):
+        """Add ribbon showing standard deviation."""
+        def sd_fun(x):
+            return pd.DataFrame({
+                'y': [np.mean(x)],
+                'ymin': [np.mean(x) - np.std(x)],
+                'ymax': [np.mean(x) + np.std(x)]
+            })
+        self.plot = self.plot + stat_summary(fun_data=sd_fun, geom='ribbon', alpha=alpha, color=color, **kwargs)
+        return self
+
+    def add_ci95_ribbon(self, alpha: float = 0.2, color='grey', **kwargs):
+        """Add ribbon showing 95% confidence interval."""
+        self.plot = self.plot + stat_smooth(method='lm', se=True, alpha=alpha, color=color, **kwargs)
+        return self
+
+    def add_barstack_absolute(self, stat: str = 'identity', width: float = 0.7, alpha: float = 0.7, **kwargs):
+        """Add stacked bars (absolute)."""
+        self.plot = self.plot + geom_bar(stat=stat, width=width, alpha=alpha, **kwargs)
+        return self
+
+    def add_barstack_relative(self, width: float = 0.7, alpha: float = 0.7, **kwargs):
+        """Add stacked bars (relative)."""
+        self.plot = self.plot + geom_bar(stat='identity', position='fill', width=width, alpha=alpha, **kwargs)
+        return self
+
+    def add_areastack_absolute(self, alpha: float = 0.7, **kwargs):
+        """Add stacked areas (absolute)."""
+        self.plot = self.plot + geom_area(position='stack', alpha=alpha, **kwargs)
+        return self
+
+    def add_areastack_relative(self, alpha: float = 0.7, **kwargs):
+        """Add stacked areas (relative)."""
+        self.plot = self.plot + geom_area(position='fill', alpha=alpha, **kwargs)
+        return self
+
+    def add_pie(self, **kwargs):
+        """
+        Add a pie chart layer to the plot.
+        
+        Args:
+            show_labels (bool): Whether to show labels
+            label_type (str): Type of labels ('value', 'percent', 'both')
+            label_radius (float): Position of labels as fraction of radius
+            label_size (float): Font size for labels
+            sort (bool): Whether to sort slices by value
+            start_angle (float): Starting angle in degrees
+            inner_radius (float): Inner radius for donut chart
+            **kwargs: Additional arguments passed to geom_pie
+            
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        self.plot = self.plot + geom_pie(**kwargs)
+        return self
+
+    def add_donut(self, inner_radius=0.6, **kwargs):
+        """
+        Add a donut chart layer to the plot.
+        
+        Args:
+            inner_radius (float): Inner radius as fraction of outer radius
+            **kwargs: Additional arguments passed to add_pie
+            
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        return self.add_pie(inner_radius=inner_radius, **kwargs)
+
+    def add_rose(self, **kwargs):
+        """
+        Add a Nightingale Rose Chart layer to the plot.
+        
+        Args:
+            show_labels (bool): Whether to show labels
+            label_type (str): Type of labels ('value', 'percent', 'both')
+            label_radius (float): Position of labels as fraction of radius
+            label_size (float): Font size for labels
+            sort (bool): Whether to sort slices by value
+            start_angle (float): Starting angle in degrees
+            **kwargs: Additional arguments passed to geom_rose
+            
+        Returns:
+            TidyPlot: The plot object for method chaining
+        """
+        self.plot = self.plot + geom_rose(**kwargs)
+        return self
+
+    def adjust_title(self, text: str, size: float = 14):
+        """Modify plot title."""
+        self.plot = self.plot + theme(plot_title=element_text(size=size)) + labs(title=text)
+        return self
+    
+    def adjust_x_axis_title(self, text: str, size: float = 11):
+        """Modify x axis title."""
+        self.plot = self.plot + theme(axis_title_x=element_text(size=size)) + labs(x=text)
+        return self
+
+    def adjust_y_axis_title(self, text: str, size: float = 11):
+        """Modify y axis title."""
+        self.plot = self.plot + theme(axis_title_y=element_text(size=size)) + labs(y=text)
+        return self
+
+    def adjust_caption(self, text: str, size: float = 10):
+        """Modify plot caption."""
+        self.plot = self.plot + theme(plot_caption=element_text(size=size)) + labs(caption=text)
+        return self
+
+    def adjust_size(self, width: float, height: float):
+        """Modify plot size."""
+        self.plot = self.plot + theme(figure_size=(width, height))
+        return self
+
+    def adjust_padding(self, left: float = 0.1, right: float = 0.1, top: float = 0.1, bottom: float = 0.1):
+        """Modify plot padding."""
+        # Convert the values to a tuple of numbers in inches
+        margin = (top, right, bottom, left)
+        self.plot = self.plot + theme(plot_margin=margin)
+        return self
+    
+    def adjust_x_axis(self, limits: tuple = None, breaks: list = None, labels: list = None):
+        """Modify x axis properties."""
+        if limits:
+            self.plot = self.plot + scale_x_continuous(limits=limits)
+        if breaks:
+            self.plot = self.plot + scale_x_continuous(breaks=breaks)
+        if labels:
+            self.plot = self.plot + scale_x_continuous(labels=labels)
+        return self
+
+    def adjust_y_axis(self, limits: tuple = None, breaks: list = None, labels: list = None):
+        """Modify y axis properties."""
+        if limits:
+            self.plot = self.plot + scale_y_continuous(limits=limits)
+        if breaks:
+            self.plot = self.plot + scale_y_continuous(breaks=breaks)
+        if labels:
+            self.plot = self.plot + scale_y_continuous(labels=labels)
+        return self
+
+    def rename_y_axis_labels(self, mapping: dict):
+        """Rename y axis labels."""
+        self.plot = self.plot + scale_y_discrete(labels=mapping)
+        return self
+
+    def rename_x_axis_labels(self, mapping: Dict[str, str]):
+        """Rename x-axis labels using a mapping dictionary."""
+        self.plot = self.plot + scale_x_discrete(labels=mapping)
+        return self
+
+    def rename_color_labels(self, mapping: dict):
+        """Rename color labels."""
+        if 'color' in self.plot.mapping:
+            self.plot = self.plot + scale_color_discrete(labels=mapping)
+        else:
+            self.plot = self.plot + scale_fill_discrete(labels=mapping)
+        return self
+
+    def reorder_x_axis_labels(self, order: list):
+        """Reorder x axis labels."""
+        self.plot = self.plot + scale_x_discrete(limits=order)
+        return self
+
+    def reorder_y_axis_labels(self, order: list):
+        """Reorder y axis labels."""
+        self.plot = self.plot + scale_y_discrete(limits=order)
+        return self
+
+    def reorder_color_labels(self, order: list):
+        """Reorder color labels."""
+        if 'color' in self.plot.mapping:
+            self.plot = self.plot + scale_color_discrete(limits=order)
+        else:
+            self.plot = self.plot + scale_fill_discrete(limits=order)
+        return self
+
+    def sort_x_axis_labels(self, ascending: bool = True):
+        """Sort x axis labels."""
+        x = self.plot.mapping['x']
+        order = sorted(self._obj[x].unique(), reverse=not ascending)
+        return self.reorder_x_axis_labels(order)
+
+    def sort_y_axis_labels(self, ascending: bool = True):
+        """Sort y axis labels."""
+        y = self.plot.mapping['y']
+        order = sorted(self._obj[y].unique(), reverse=not ascending)
+        return self.reorder_y_axis_labels(order)
+
+    def sort_color_labels(self, ascending: bool = True):
+        """Sort color labels."""
+        if 'color' in self.plot.mapping:
+            color = self.plot.mapping['color']
+            order = sorted(self._obj[color].unique(), reverse=not ascending)
+        else:
+            color = self.plot.mapping.get('fill')
+            if color:
+                order = sorted(self._obj[color].unique(), reverse=not ascending)
+            else:
+                return self
+        return self.reorder_color_labels(order)
+
+    def reverse_x_axis_labels(self):
+        """Reverse x axis labels."""
+        x = self.plot.mapping['x']
+        order = list(reversed(self._obj[x].unique()))
+        return self.reorder_x_axis_labels(order)
+
+    def reverse_y_axis_labels(self):
+        """Reverse y axis labels."""
+        y = self.plot.mapping['y']
+        order = list(reversed(self._obj[y].unique()))
+        return self.reorder_y_axis_labels(order)
+
+    def reverse_color_labels(self):
+        """Reverse color labels."""
+        if 'color' in self.plot.mapping:
+            color = self.plot.mapping['color']
+            order = list(reversed(self._obj[color].unique()))
+        else:
+            color = self.plot.mapping.get('fill')
+            if color:
+                order = list(reversed(self._obj[color].unique()))
+            else:
+                return self
+        return self.reorder_color_labels(order)
+
+    def add_pvalue(self,p: float, x1: float, x2: float, y: float, height: float = 0.02,
+                  format: str = "stars") -> List[Any]:
+        """Add p-value annotation with bracket.
+        
+        Parameters:
+        -----------
+        p : float
+            P-value to display
+        x1, x2 : float
+            x-coordinates for bracket ends
+        y : float
+            y-coordinate for bracket
+        height : float
+            Height of the bracket
+        format : str
+            Format for p-value display ('stars' or 'numeric')
+            
+        Returns:
+        --------
+        list
+            List of annotation layers
+        """
+        if format == "stars":
+            if p < 0.001:
+                text = "***"
+            elif p < 0.01:
+                text = "**"
+            elif p < 0.05:
+                text = "*"
+            else:
+                text = "ns"
+        else:
+            text = f"p = {p:.3f}"
+            
+        return [
+            geom_segment(aes(x=x1, xend=x1, y=y, yend=y+height)),
+            geom_segment(aes(x=x2, xend=x2, y=y, yend=y+height)),
+            geom_segment(aes(x=x1, xend=x2, y=y+height, yend=y+height)),
+            annotate("text", x=(x1+x2)/2, y=y+height, label=text, size=8)
+        ]
