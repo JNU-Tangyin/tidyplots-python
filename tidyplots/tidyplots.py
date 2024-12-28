@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from plotnine import (
     # Core components
-    ggplot, aes, labs,
+    ggplot, aes, labs, annotate,
     # Geometries
     geom_point, geom_line, geom_bar, geom_boxplot, geom_violin, 
     geom_density, geom_step, geom_dotplot, geom_text, geom_jitter,
@@ -12,7 +12,9 @@ from plotnine import (
     geom_smooth,
     geom_errorbar,
     # Statistics
-    stat_summary,
+    stat_summary, stat_density_2d,
+)
+from plotnine import (
     # Positions
     position_jitterdodge, position_stack, position_fill, position_dodge, position_jitter,
     # Coordinates and scales
@@ -49,14 +51,14 @@ class TidyPlotAccessor:
         """Initialize the accessor with a pandas DataFrame."""
         self._obj = pandas_obj
         
-    def __call__(self, x=None, y=None, fill=None, color=None, size=None, alpha=None):
+    def __call__(self, x=None, y=None, fill=None, color=None, size=None, alpha=None, split_by=None):
         """Create a TidyPlot from the DataFrame with aesthetic mappings."""
-        return TidyPlot(self._obj, x=x, y=y, fill=fill, color=color, size=size, alpha=alpha)
+        return TidyPlot(self._obj, x=x, y=y, fill=fill, color=color, size=size, alpha=alpha, split_by=split_by)
 
 class TidyPlot:
     """A fluent interface for creating publication-ready plots."""
     
-    def __init__(self, data, x=None, y=None, fill=None, color=None, size=None, alpha=None):
+    def __init__(self, data, x=None, y=None, fill=None, color=None, size=None, alpha=None, split_by=None):
         """Initialize TidyPlot with data and aesthetic mappings."""
         self._obj = data
         self._x = x
@@ -65,6 +67,7 @@ class TidyPlot:
         self._color = color
         self._size = size
         self._alpha = alpha
+        self._split_by = split_by
         self._colors = None
         self.fig = None
         self.ax = None
@@ -89,6 +92,13 @@ class TidyPlot:
             
         self.plot = (ggplot(self._obj, aes(**mapping_dict)) +
                     self._default_theme)  # Use default theme
+        
+        # Apply default color palette
+        colors = palettes.get_palette(self._default_palette)
+        if 'fill' in mapping_dict:
+            self.plot = self.plot + scale_fill_manual(values=colors)
+        if 'color' in mapping_dict:
+            self.plot = self.plot + scale_color_manual(values=colors)
         
     def __call__(self, x: str, y: str = None, 
                 color: Optional[str] = None, 
@@ -193,7 +203,7 @@ class TidyPlot:
             width=width
         )
         return self
-    
+        
     def add_data_points_jitter(self, **kwargs): 
         """Add jittered points to the plot."""
         self.plot = self.plot + geom_jitter(**kwargs)
@@ -435,7 +445,9 @@ class TidyPlot:
     def save(self, filepath):
         """Save the plot to a file."""
         # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        dirpath = os.path.dirname(filepath)
+        if dirpath:  # Only create directories if path contains them
+            os.makedirs(dirpath, exist_ok=True)
         
         if self.fig:  # For matplotlib-based plots (pie charts)
             self.fig.savefig(filepath, bbox_inches='tight')
