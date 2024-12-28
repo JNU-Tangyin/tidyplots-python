@@ -35,8 +35,8 @@ data = pd.DataFrame({
 # Example 3: Box plot with data points and p-values
 (data.tidyplot(x='group', y='y')
  .add_boxplot()
- .add_data_points(alpha=0.3)
- .add_pvalue(0.001, 0, 2, 2.5)  # Add significance between groups A and C
+ .add_scatter(alpha=0.3)
+ # .add_pvalue(0.001, 0, 2, 2.5)  # Add significance between groups A and C
  .adjust_labels(title='Box Plot with P-value', x='Group', y='Value')
  .save('figures/boxplot_jitter.png'))
 
@@ -55,7 +55,7 @@ data = pd.DataFrame({
 # Example 6: 2D density plot
 (data.tidyplot(x='x', y='y')
  .add_density_2d()
- .scale_color_gradient(low='lightblue', high='darkblue')
+ .adjust_colors('Blues')
  .adjust_labels(title='2D Density Plot', x='X', y='Y')
  .save('figures/density_2d.png'))
 
