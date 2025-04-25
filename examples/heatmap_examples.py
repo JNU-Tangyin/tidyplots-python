@@ -5,6 +5,7 @@ Examples of heatmap visualizations using TidyPlots.
 import pandas as pd
 import numpy as np
 from tidyplots import tidyplot
+from plotnine import geom_tile
 
 print("\nExample 1: Basic Heatmap (Default Palette)")
 # Create sample data

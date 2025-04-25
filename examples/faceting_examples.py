@@ -49,6 +49,7 @@ titanic = sns.load_dataset("titanic")
 # Convert 'survived' to string for better labels
 titanic['survived'] = titanic['survived'].map({0: 'No', 1: 'Yes'})
 survival_data = titanic.groupby(['class', 'sex', 'survived']).size().reset_index(name='count')
+
 (survival_data.tidyplot(x='class', y='count', fill='survived', split_by='sex')
  .add_bar(position='dodge', alpha=0.7)
  .adjust_labels(title='Titanic Survival by Class and Sex',
