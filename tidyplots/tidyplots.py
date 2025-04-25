@@ -41,6 +41,8 @@ class TidyPlot:
         self.prism = themes.TidyPrism()
         self._default_theme = self.prism.theme_prism()  # 设置默认主题为 theme_prism
         self._default_palette = 'npg'  # 设置默认调色板为 npg
+        self._split_by = None  # Store split_by for later use
+        self._faceting_applied = False  # Track if faceting has been applied
     
     def __call__(self, x: str, y: str = None, 
                 color: Optional[str] = None, 
@@ -65,14 +67,14 @@ class TidyPlot:
                      - List[str]: Two column names for facet_grid (row, col)
         """
         
+        # Store split_by for later use
+        self._split_by = split_by
+        self._faceting_applied = False
+        
         # 构建映射字典，排除self和非映射参数
         mapping_dict = {key: value for key, value in locals().items() 
-                       if key not in ['self', 'kwargs'] and value is not None}
+                       if key not in ['self', 'kwargs', 'split_by'] and value is not None}
         
-        # Remove split_by from mapping as it's not an aesthetic
-        if 'split_by' in mapping_dict:
-            del mapping_dict['split_by']
-
         self.plot = (ggplot(self._obj, aes(**mapping_dict)) +
                     self._default_theme)  # Use default theme
         
@@ -83,17 +85,6 @@ class TidyPlot:
         else:
             if color is not None:
                 self.plot = self.plot + scale_color_manual(values=colors)
-        
-        # Handle split_by parameter
-        if split_by is not None:
-            if isinstance(split_by, str):
-                # Single variable uses facet_wrap
-                self.plot = self.plot + facet_wrap(f"~{split_by}")
-            elif isinstance(split_by, (list, tuple)) and len(split_by) == 2:
-                # Two variables use facet_grid
-                self.plot = self.plot + facet_grid(f"{split_by[0]}~{split_by[1]}")
-            else:
-                raise ValueError("split_by must be either a string or a list/tuple of two strings")
                 
         return self
     
@@ -360,8 +351,25 @@ class TidyPlot:
         self.plot = self.plot + theme(legend_position='none')
         return self
 
+    def _apply_faceting(self):
+        """Apply faceting to the plot if not already applied."""
+        if not self._faceting_applied and self._split_by is not None:
+            if isinstance(self._split_by, str):
+                # Single variable uses facet_wrap with formula string
+                self.plot = self.plot + facet_wrap(f"~ {self._split_by}")
+            elif isinstance(self._split_by, (list, tuple)) and len(self._split_by) == 2:
+                # Two variables use facet_grid with rows and cols
+                from plotnine.facets import facet_grid
+                self.plot = self.plot + facet_grid(rows=self._split_by[0], cols=self._split_by[1])
+            else:
+                raise ValueError("split_by must be either a string or a list/tuple of two strings")
+            self._faceting_applied = True
+
     def show(self):
         """Display the plot."""
+        # Apply faceting if needed
+        self._apply_faceting()
+        
         # Draw the plot first if needed
         if self.plot is not None:
             self.plot.draw()
@@ -385,6 +393,9 @@ class TidyPlot:
             filename (str): Path to save the plot to
             **kwargs: Additional arguments passed to plt.savefig() or plotnine.save()
         """
+        # Apply faceting if needed
+        self._apply_faceting()
+        
         # Draw the plot first if needed
         if self.plot is not None:
             self.plot.draw()
